@@ -1,0 +1,9 @@
+node_modules/
+.next/
+package-lock.json
+FinPath_design_mockup/
+# 기존 타임라인 데모(보존용)와 문서는 포맷 대상에서 제외
+src/
+index.html
+server.mjs
+*.md
