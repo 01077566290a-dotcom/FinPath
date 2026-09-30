@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+test-results/
+.next/
+.env*
+!.env.example
+
+# 디자인 목업은 저장소에 포함하지 않음
+FinPath_design_mockup/
+FinPath_design_mockup.zip

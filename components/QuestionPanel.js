@@ -1,0 +1,5 @@
+import { EVENTS } from '../lib/schema.js';
+export default function QuestionPanel({ question, result, onAnswer }) {
+  if (!question) return null;
+  return <section className="panel question-panel" aria-labelledby="question-title"><div className="section-top"><span className="step">03</span><span className="overline">한 번에 하나씩</span></div><div aria-live="polite" aria-atomic="true"><h2 id="question-title">{question.text}</h2><p className="muted">{question.kind === 'event' ? '미정이면 이 이벤트는 보류하고, 확정된 계획의 정보를 먼저 확인해요.' : `${question.requiredBy.map(type => EVENTS[type]).join(' · ')}에 필요한 정보예요. 공유되는 정보는 한 번만 물어봐요.`}</p></div><div className="answer-options">{question.options.map(option => <button type="button" key={`${question.key}-${option.value}`} onClick={() => onAnswer(question, option.value)}>{option.label}<span aria-hidden="true">→</span></button>)}</div><div className="question-footer"><span>{result.pendingEvents.length ? `상태 확인 ${result.pendingEvents.length}개` : `남은 정보 ${result.missingSlots.length}개`}</span><span>답하면 다음 질문으로 넘어가요</span></div></section>;
+}
