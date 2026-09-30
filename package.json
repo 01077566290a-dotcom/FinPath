@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-legacy.mjs",
     "dev": "next dev --hostname 127.0.0.1",
+    "prebuild": "node scripts/copy-legacy.mjs",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "test": "node --test tests/*.test.js",

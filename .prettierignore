@@ -7,3 +7,5 @@ src/
 index.html
 server.mjs
 *.md
+out/
+public/legacy/
