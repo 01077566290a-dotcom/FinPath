@@ -16,7 +16,10 @@ export default function SituationStep() {
   const [message, setMessage] = useState('');
   const loaded = useRef(false);
   useEffect(() => {
-    if (flow && !loaded.current) { loaded.current = true; setText(flow.text); }
+    if (flow && !loaded.current) {
+      loaded.current = true;
+      setText(flow.text);
+    }
   }, [flow]);
 
   const hasAnswers = Boolean(flow && (flow.history.length || Object.keys(flow.engine.events).length));
@@ -30,11 +33,14 @@ export default function SituationStep() {
   async function submit(event) {
     event.preventDefault();
     if (!ready) return;
-    setBusy(true); setMessage('');
+    setBusy(true);
+    setMessage('');
     try {
       const { state } = await analyzeInput(text, createInitialState());
       if (!Object.keys(state.events).length) {
-        setMessage('어떤 상황인지 아직 잘 모르겠어요. 취업, 월급, 독립, 집 계약, 대출 중 해당하는 이야기를 조금 더 적어 주세요.');
+        setMessage(
+          '어떤 상황인지 아직 잘 모르겠어요. 취업, 월급, 독립, 집 계약, 대출 중 해당하는 이야기를 조금 더 적어 주세요.',
+        );
         return;
       }
       update({ text, engine: state, history: [], done: {} });
@@ -58,28 +64,49 @@ export default function SituationStep() {
           </div>
           <form onSubmit={submit} className="situation">
             <div className="situation__box">
-              <label htmlFor="situation" className="sr-only">현재 상황</label>
+              <label htmlFor="situation" className="sr-only">
+                현재 상황
+              </label>
               <textarea
                 id="situation"
                 rows={6}
                 maxLength={2000}
                 value={text}
                 disabled={!flow || busy}
-                onChange={e => { setText(e.target.value); setMessage(''); }}
+                onChange={e => {
+                  setText(e.target.value);
+                  setMessage('');
+                }}
                 placeholder="예: 다음 달에 취업해서 반년 뒤 월세로 독립하려고 해요. 모아둔 돈은 천만 원 정도예요."
               />
               <div className="situation__actions">
                 {hasAnswers && <span className="situation__hint">다시 분석하면 이전 답변은 초기화돼요.</span>}
-                <button type="submit" className="btn btn--primary" disabled={!ready}>{busy ? '분석 중…' : '다음'} <ArrowIcon /></button>
+                <button type="submit" className="btn btn--primary" disabled={!ready}>
+                  {busy ? '분석 중…' : '다음'} <ArrowIcon />
+                </button>
               </div>
             </div>
-            {message && <p className="notice" role="alert">{message}</p>}
+            {message && (
+              <p className="notice" role="alert">
+                {message}
+              </p>
+            )}
             <PrivacyNote persistent={persistent} />
           </form>
           <div className="chips">
             <p className="chips__label">뭐라고 쓸지 모르겠다면, 하나 골라보세요.</p>
             <div className="chips__list">
-              {CHIPS.map(chip => <button key={chip} type="button" className="chip" disabled={!flow || busy} onClick={() => addChip(chip)}>{chip.replace(/\.$/, '')}</button>)}
+              {CHIPS.map(chip => (
+                <button
+                  key={chip}
+                  type="button"
+                  className="chip"
+                  disabled={!flow || busy}
+                  onClick={() => addChip(chip)}
+                >
+                  {chip.replace(/\.$/, '')}
+                </button>
+              ))}
             </div>
           </div>
         </div>

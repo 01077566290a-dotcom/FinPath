@@ -17,10 +17,15 @@ npm run dev
 
 ## 함께 작업하기
 
-1. `main`에 직접 push하지 않고, 작업마다 브랜치를 만듭니다. 예: `git switch -c feature/map-screen`
-2. 커밋 전에 `npm test`가 통과하는지 확인합니다.
-3. GitHub에서 `main`으로 Pull Request를 열고, 팀원 리뷰 후 병합합니다.
-4. 작업을 시작하기 전에 `git switch main && git pull`로 최신 상태를 받습니다.
+처음 한 번: Node.js 22 이상과 Git을 설치하고 `git clone` → `npm ci` → `npm run dev`. VS Code를 쓰면 추천 확장(Prettier)을 설치합니다. 저장할 때 자동으로 포맷됩니다.
+
+1. 작업을 시작하기 전에 `git switch main && git pull`로 최신 상태를 받습니다.
+2. 작업마다 브랜치를 만듭니다. 예: `git switch -c feature/question-copy`
+3. 커밋 전에 `npm run format`, `npm test`를 실행합니다.
+4. `git push -u origin 브랜치이름` 후 GitHub에서 `main`으로 Pull Request를 엽니다.
+5. PR의 자동 검사(CI: 포맷 확인 · 테스트 · 빌드)가 통과하면 병합합니다. **`main`에는 직접 push할 수 없고 PR로만 병합됩니다.**
+
+CI의 포맷 확인이 실패하면 `npm run format`을 실행해 커밋하면 됩니다. 일괄 포맷 커밋은 `.git-blame-ignore-revs`에 기록되어 있습니다. `git config blame.ignoreRevsFile .git-blame-ignore-revs`를 한 번 실행하면 `git blame`에서 제외됩니다.
 
 줄바꿈은 `.gitattributes`로 LF에 고정되어 Windows·Mac 간 차이가 diff에 나타나지 않습니다. 디자인 목업(`FinPath_design_mockup/`)은 저장소에 포함하지 않으므로 팀 내에서 따로 공유합니다.
 
