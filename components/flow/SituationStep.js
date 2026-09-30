@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { analyzeInput } from '../../lib/pipeline.js';
 import { createInitialState } from '../../lib/state.js';
+import { EXAMPLE_SITUATIONS } from '../../lib/examples.js';
 import { useFlow } from './useFlow.js';
 import { SiteHeader, StepProgress, PrivacyNote, ArrowIcon } from './Chrome.js';
 
@@ -15,6 +16,7 @@ export default function SituationStep() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const loaded = useRef(false);
+  const submitRef = useRef(null);
   useEffect(() => {
     if (flow && !loaded.current) {
       loaded.current = true;
@@ -28,6 +30,13 @@ export default function SituationStep() {
   function addChip(chip) {
     setMessage('');
     setText(current => (current.trim() ? `${current.trim()} ${chip}` : chip));
+  }
+
+  function pickExample(example) {
+    setMessage('');
+    setText(example.text);
+    // 예시를 고른 뒤 바로 '다음'을 누를 수 있게 포커스를 옮깁니다.
+    requestAnimationFrame(() => submitRef.current?.focus());
   }
 
   async function submit(event) {
@@ -81,7 +90,7 @@ export default function SituationStep() {
               />
               <div className="situation__actions">
                 {hasAnswers && <span className="situation__hint">다시 분석하면 이전 답변은 초기화돼요.</span>}
-                <button type="submit" className="btn btn--primary" disabled={!ready}>
+                <button ref={submitRef} type="submit" className="btn btn--primary" disabled={!ready}>
                   {busy ? '분석 중…' : '다음'} <ArrowIcon />
                 </button>
               </div>
@@ -109,6 +118,26 @@ export default function SituationStep() {
               ))}
             </div>
           </div>
+          <section className="examples" aria-labelledby="examples-title">
+            <p id="examples-title" className="chips__label">
+              예시 상황으로 체험해 볼 수도 있어요. 누르면 위에 문장이 채워져요.
+            </p>
+            <div className="examples__grid">
+              {EXAMPLE_SITUATIONS.map(example => (
+                <button
+                  key={example.id}
+                  type="button"
+                  className="example-card"
+                  aria-pressed={text === example.text}
+                  disabled={!flow || busy}
+                  onClick={() => pickExample(example)}
+                >
+                  <strong>{example.title}</strong>
+                  <span>{example.summary}</span>
+                </button>
+              ))}
+            </div>
+          </section>
         </div>
       </main>
     </>

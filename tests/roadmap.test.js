@@ -5,6 +5,7 @@ import { createInitialState, applyAnswer } from '../lib/state.js';
 import { evaluateRules } from '../lib/rules.js';
 import { selectNextQuestion } from '../lib/questions.js';
 import { buildRoadmap, STEP_CATALOG } from '../lib/roadmap.js';
+import { EXAMPLE_SITUATIONS } from '../lib/examples.js';
 
 async function answerAll(text, pick = options => options[0].value) {
   let { state } = await analyzeInput(text, createInitialState());
@@ -75,4 +76,17 @@ test('미정으로 보류한 이벤트는 단계 대신 보류 목록에 남는�
 
 test('단계 카탈로그의 id는 중복되지 않는다', () => {
   assert.equal(new Set(STEP_CATALOG.map(step => step.id)).size, STEP_CATALOG.length);
+});
+
+test('예시 상황은 모두 해석되고 서로 다른 지도를 만든다', async () => {
+  const maps = [];
+  for (const example of EXAMPLE_SITUATIONS) {
+    const { state } = await analyzeInput(example.text, createInitialState());
+    assert.ok(Object.keys(state.events).length > 0, `${example.id}: 인식한 이벤트 없음`);
+    assert.equal(evaluateRules(state).pendingEvents.length, 0, `${example.id}: 상태를 다시 묻지 않아야 함`);
+    const roadmap = buildRoadmap(await answerAll(example.text));
+    assert.equal(roadmap.status, 'complete', example.id);
+    maps.push(ids(roadmap).join(','));
+  }
+  assert.equal(new Set(maps).size, EXAMPLE_SITUATIONS.length);
 });
