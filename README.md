@@ -1,5 +1,7 @@
 # FinPath · 금융 정보 내비게이션 데모
 
+**▶ 데모 바로 보기: <https://01077566290a-dotcom.github.io/FinPath/>** (`main`에 병합될 때마다 자동 배포)
+
 자연어로 상황을 말하면 이벤트·슬롯을 추출하고, 부족한 정보만 선택형으로 물은 뒤, 무엇을 어떤 순서로 알아볼지 **나의 금융 지도**로 보여주는 데모입니다.
 
 화면 흐름: `/` 시작 → `/start` 상황 말하기 → `/questions` 질문 답하기 → `/map` 나의 금융 지도 (디자인 목업 4-C 중앙 줄기형)
@@ -46,7 +48,6 @@ app/
   layout.js / globals.css            루트 레이아웃, 디자인 토큰(목업 색상)
   page.js                            1 시작 화면
   start/ questions/ map/             2 상황 입력 · 3 질문 · 4 금융 지도 라우트
-  legacy/[[...path]]/route.js          기존 타임라인 데모 정적 라우트
 components/flow/
   SituationStep.js                   자연어 입력 → analyzeInput → /questions
   QuestionStep.js                    엔진 질문 한 개씩, 이전 질문, 답변 확인·수정
@@ -70,6 +71,16 @@ tests/
   roadmap.test.js                    지도 단계 구성·순서·먼저 볼 단계 테스트
   timeline.test.js                   기존 타임라인 회귀 테스트
 ```
+
+## GitHub Pages 배포
+
+`.github/workflows/pages.yml`이 `main`에 push(PR 병합)될 때마다 정적 사이트로 빌드해 GitHub Pages에 배포합니다. Actions 탭에서 진행 상황을 볼 수 있고, 수동 실행(Run workflow)도 가능합니다.
+
+- 배포 빌드에서만 `GITHUB_PAGES=true`로 `output: 'export'`, `basePath: '/FinPath'`가 적용됩니다(`next.config.mjs`). 로컬 `npm run dev`/`build`/`start`는 영향을 받지 않습니다.
+- 정적 사이트이므로 서버 전용 기능(쿠키·헤더를 읽는 서버 코드, 요청마다 동작하는 Route Handler, Server Actions 등)을 추가하면 배포가 실패합니다. 추가가 필요하면 배포 방식을 먼저 논의합니다.
+- 기존 타임라인 데모는 `scripts/copy-legacy.mjs`가 dev·build 전에 `public/legacy/`로 복사해 정적 파일로 제공합니다.
+- 로컬에서 배포 빌드 확인: `GITHUB_PAGES=true npm run build` → `out/` 생성. (Windows Git Bash에서는 앞에 `MSYS_NO_PATHCONV=1`을 붙입니다.)
+- 알려진 문제: 배포 사이트에서 링크 프리페치 파일(`__next.*.txt`) 하나가 404로 콘솔에 표시됩니다. Next.js 16 정적 내보내기의 파일 이름 불일치로, 페이지 이동에는 영향이 없습니다.
 
 ## 데이터 흐름과 계약
 
@@ -123,4 +134,4 @@ lib/extractors/aiExtractor.js에서 동일한 비동기 반환 계약을 구현�
 
 ## 기존 타임라인 데모
 
-이전 index.html, src/, server.mjs는 보존했습니다. Next.js 실행 중 <http://localhost:3000/legacy>에서 확인하거나 `npm run legacy`로 <http://localhost:5173>에서 별도 실행합니다. 기존 데모만 localStorage를 사용하며 새 정보 수집 데모와 연결하지 않습니다. 이전 설명은 docs/legacy.md에 있습니다.
+이전 index.html, src/, server.mjs는 보존했습니다. Next.js 실행 중 <http://localhost:3000/legacy/index.html>(배포 사이트는 `/FinPath/legacy/index.html`)에서 확인하거나 `npm run legacy`로 <http://localhost:5173>에서 별도 실행합니다. 기존 데모만 localStorage를 사용하며 새 정보 수집 데모와 연결하지 않습니다. 이전 설명은 docs/legacy.md에 있습니다.
