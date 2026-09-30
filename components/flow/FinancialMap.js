@@ -15,7 +15,9 @@ export default function FinancialMap() {
   const engine = flow?.engine;
   const roadmap = useMemo(() => (engine ? buildRoadmap(engine) : null), [engine]);
   const redirect = roadmap && REDIRECT[roadmap.status];
-  useEffect(() => { if (redirect) router.replace(redirect); }, [redirect, router]);
+  useEffect(() => {
+    if (redirect) router.replace(redirect);
+  }, [redirect, router]);
 
   function restart() {
     update(createFlow());
@@ -24,18 +26,34 @@ export default function FinancialMap() {
 
   return (
     <>
-      <SiteHeader><Link href="/questions" className="site-header__link">답변 고치기</Link></SiteHeader>
+      <SiteHeader>
+        <Link href="/questions" className="site-header__link">
+          답변 고치기
+        </Link>
+      </SiteHeader>
       <main className="map-page">
         <StepProgress current={2} />
         {roadmap && !redirect && (
           <>
             <MapIntro roadmap={roadmap} done={flow.done} />
-            {roadmap.steps.length
-              ? <MapBoard roadmap={roadmap} done={flow.done} onToggleDone={id => update(current => ({ ...current, done: { ...current.done, [id]: !current.done[id] } }))} />
-              : <p className="card empty-map">아직 정해진 계획이 없어서 지도에 담을 단계가 없어요. 계획이 정해지면 답변을 고쳐 주세요.</p>}
+            {roadmap.steps.length ? (
+              <MapBoard
+                roadmap={roadmap}
+                done={flow.done}
+                onToggleDone={id =>
+                  update(current => ({ ...current, done: { ...current.done, [id]: !current.done[id] } }))
+                }
+              />
+            ) : (
+              <p className="card empty-map">
+                아직 정해진 계획이 없어서 지도에 담을 단계가 없어요. 계획이 정해지면 답변을 고쳐 주세요.
+              </p>
+            )}
             <div className="map-footer">
               <PrivacyNote persistent={persistent} />
-              <button type="button" className="btn btn--ghost" onClick={restart}>처음부터 다시 하기</button>
+              <button type="button" className="btn btn--ghost" onClick={restart}>
+                처음부터 다시 하기
+              </button>
             </div>
           </>
         )}
@@ -52,12 +70,28 @@ function MapIntro({ roadmap, done }) {
         <h1>나의 금융 지도</h1>
         <p>번호 순서대로 따라가 보세요. 단계를 누르면 설명이 열려요.</p>
       </div>
-      {roadmap.deferred.length > 0 && <p className="info-note">보류한 계획: {roadmap.deferred.join(', ')}. 정해지면 ‘답변 고치기’에서 상태를 바꿔 지도에 넣을 수 있어요.</p>}
+      {roadmap.deferred.length > 0 && (
+        <p className="info-note">
+          보류한 계획: {roadmap.deferred.join(', ')}. 정해지면 ‘답변 고치기’에서 상태를 바꿔 지도에 넣을 수 있어요.
+        </p>
+      )}
       <div className="map-legend">
-        <span><i className="legend-swatch legend-swatch--selected" />선택한 단계</span>
-        <span><i className="legend-swatch legend-swatch--first" />먼저 볼 단계</span>
-        <span><i className="legend-number">1</i>번호는 진행 순서</span>
-        {roadmap.steps.length > 0 && <span className="map-legend__progress">{doneCount} / {roadmap.steps.length} 완료</span>}
+        <span>
+          <i className="legend-swatch legend-swatch--selected" />
+          선택한 단계
+        </span>
+        <span>
+          <i className="legend-swatch legend-swatch--first" />
+          먼저 볼 단계
+        </span>
+        <span>
+          <i className="legend-number">1</i>번호는 진행 순서
+        </span>
+        {roadmap.steps.length > 0 && (
+          <span className="map-legend__progress">
+            {doneCount} / {roadmap.steps.length} 완료
+          </span>
+        )}
       </div>
     </div>
   );
@@ -80,10 +114,16 @@ function MapBoard({ roadmap, done, onToggleDone }) {
 
   // 말풍선을 선택한 단계 높이에 맞추되 지도 아래로 벗어나지 않게 합니다.
   useLayoutEffect(() => {
-    if (!selected) { setMinHeight(undefined); return; }
-    const row = rowRefs.current[selected.id], pop = popRef.current, track = trackRef.current;
+    if (!selected) {
+      setMinHeight(undefined);
+      return;
+    }
+    const row = rowRefs.current[selected.id],
+      pop = popRef.current,
+      track = trackRef.current;
     if (!row || !pop || !track) return;
-    const trackHeight = track.offsetHeight, popHeight = pop.offsetHeight;
+    const trackHeight = track.offsetHeight,
+      popHeight = pop.offsetHeight;
     const desired = row.offsetTop + row.offsetHeight / 2 - 150;
     setPopTop(Math.max(0, Math.min(desired, trackHeight - popHeight)));
     setMinHeight(popHeight > trackHeight ? popHeight : undefined);
@@ -92,7 +132,9 @@ function MapBoard({ roadmap, done, onToggleDone }) {
   useEffect(() => {
     if (!selected) return;
     titleRef.current?.focus({ preventScroll: true });
-    const onKey = event => { if (event.key === 'Escape') close(); };
+    const onKey = event => {
+      if (event.key === 'Escape') close();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -113,15 +155,25 @@ function MapBoard({ roadmap, done, onToggleDone }) {
         </div>
         {roadmap.groups.map(group => (
           <Fragment key={group.phase}>
-            <div className="map__phase"><span>{group.label}</span></div>
+            <div className="map__phase">
+              <span>{group.label}</span>
+            </div>
             {group.steps.map(step => {
               const state = step.id === selectedId ? 'is-selected' : prerequisites.includes(step.id) ? 'is-first' : '';
               return (
-                <div key={step.id} className={`map__row map__row--${side(step)}`} ref={el => { rowRefs.current[step.id] = el; }}>
+                <div
+                  key={step.id}
+                  className={`map__row map__row--${side(step)}`}
+                  ref={el => {
+                    rowRefs.current[step.id] = el;
+                  }}
+                >
                   <div className="map__cell">
                     <button
                       type="button"
-                      ref={el => { cardRefs.current[step.id] = el; }}
+                      ref={el => {
+                        cardRefs.current[step.id] = el;
+                      }}
                       className={`map-card ${state} ${done[step.id] ? 'is-done' : ''}`}
                       aria-pressed={step.id === selectedId}
                       aria-label={`${step.number}번 ${step.title}${done[step.id] ? ' (완료)' : ''}`}
@@ -132,9 +184,22 @@ function MapBoard({ roadmap, done, onToggleDone }) {
                     <i className="map__link" aria-hidden="true" />
                   </div>
                   <span className={`map-dot ${state} ${done[step.id] ? 'is-done' : ''}`} aria-hidden="true">
-                    {done[step.id]
-                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5 9-10" /></svg>
-                      : step.number}
+                    {done[step.id] ? (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 12l5 5 9-10" />
+                      </svg>
+                    ) : (
+                      step.number
+                    )}
                   </span>
                 </div>
               );
@@ -151,12 +216,22 @@ function MapBoard({ roadmap, done, onToggleDone }) {
         >
           <div className="map-pop__head">
             <div>
-              <p className="map-pop__meta">{selected.phaseLabel} · {selected.tags.join(' · ')}</p>
-              <h2 id="map-pop-title" ref={titleRef} tabIndex={-1}>{selected.title}</h2>
+              <p className="map-pop__meta">
+                {selected.phaseLabel} · {selected.tags.join(' · ')}
+              </p>
+              <h2 id="map-pop-title" ref={titleRef} tabIndex={-1}>
+                {selected.title}
+              </h2>
             </div>
-            <button type="button" className="btn btn--outline btn--sm" onClick={close}>닫기</button>
+            <button type="button" className="btn btn--outline btn--sm" onClick={close}>
+              닫기
+            </button>
           </div>
-          {selected.first.length > 0 && <p className="map-pop__first">먼저 보세요: {selected.first.map(id => `${byId(id).number}번 ${byId(id).title}`).join(' / ')}</p>}
+          {selected.first.length > 0 && (
+            <p className="map-pop__first">
+              먼저 보세요: {selected.first.map(id => `${byId(id).number}번 ${byId(id).title}`).join(' / ')}
+            </p>
+          )}
           {selected.note && <p className="info-note">{selected.note}</p>}
           <div className="map-pop__block">
             <h3>왜 지금 알아봐야 하나요</h3>
@@ -164,7 +239,11 @@ function MapBoard({ roadmap, done, onToggleDone }) {
           </div>
           <div className="map-pop__block">
             <h3>이렇게 해보세요</h3>
-            <ol className="how-list">{selected.how.map(item => <li key={item}>{item}</li>)}</ol>
+            <ol className="how-list">
+              {selected.how.map(item => (
+                <li key={item}>{item}</li>
+              ))}
+            </ol>
           </div>
           <div className="map-pop__block">
             <h3>다음 단계</h3>
@@ -172,7 +251,12 @@ function MapBoard({ roadmap, done, onToggleDone }) {
           </div>
           <p className="map-pop__source">출처: [공식 기관 자료 연결 예정]</p>
           <Disclaimer />
-          <button type="button" className={`btn ${done[selected.id] ? 'btn--done' : 'btn--primary'} btn--md`} aria-pressed={Boolean(done[selected.id])} onClick={() => onToggleDone(selected.id)}>
+          <button
+            type="button"
+            className={`btn ${done[selected.id] ? 'btn--done' : 'btn--primary'} btn--md`}
+            aria-pressed={Boolean(done[selected.id])}
+            onClick={() => onToggleDone(selected.id)}
+          >
             {done[selected.id] ? '완료했어요' : '완료로 표시하기'}
           </button>
         </section>
