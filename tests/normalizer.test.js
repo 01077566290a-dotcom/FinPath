@@ -38,7 +38,7 @@ test('금액 조각: 범위·매달 납입은 값을 만들지 않는다', () =>
   assert.equal(parseAmount('없어요').kind, 'none');
 });
 
-test('PDF 예시: 다음 달 취업, 반년 뒤 월세 자취, 천만 원 → 월소득만 질문한다', async () => {
+test('PDF 예시: 다음 달 취업, 반년 뒤 월세 자취, 천만 원 → 고용 형태와 월소득만 질문한다', async () => {
   const spans = [
     event('EMPLOYMENT', 'planned', '취업해서'),
     span('time', 'EMPLOYMENT', '다음 달'),
@@ -58,8 +58,8 @@ test('PDF 예시: 다음 달 취업, 반년 뒤 월세 자취, 천만 원 → �
   assert.equal(state.slots.housing_type, 'monthly');
   assert.equal(state.slots.savings, '500_2000');
   const result = evaluateRules(state);
-  assert.deepEqual(result.missingSlots, ['monthly_income']);
-  assert.equal(selectNextQuestion(result).key, 'monthly_income');
+  assert.deepEqual(result.missingSlots, ['employment_type', 'monthly_income']);
+  assert.equal(selectNextQuestion(result).key, 'employment_type');
 });
 
 test('귀속 규칙에 없는 조합은 버리고 재질문으로 남긴다', () => {

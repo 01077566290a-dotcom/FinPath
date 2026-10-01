@@ -45,13 +45,8 @@ export default function SituationStep() {
     setBusy(true);
     setMessage('');
     try {
+      // 상황을 찾지 못해도 멈추지 않고, 질문 화면에서 가까운 상황을 직접 고르게 합니다.
       const { state } = await analyzeInput(text, createInitialState());
-      if (!Object.keys(state.events).length) {
-        setMessage(
-          '어떤 상황인지 아직 잘 모르겠어요. 취업, 월급, 독립, 집 계약, 대출 중 해당하는 이야기를 조금 더 적어 주세요.',
-        );
-        return;
-      }
       update({ text, engine: state, history: [], done: {} });
       router.push('/questions');
     } catch (error) {

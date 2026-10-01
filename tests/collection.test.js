@@ -4,7 +4,7 @@ import { ruleExtractor, normalizeMoney } from '../lib/extractors/ruleExtractor.j
 import { createExtractor } from '../lib/extractors/index.js';
 import { emptySlots, moneyBucket } from '../lib/schema.js';
 import { validateExtraction } from '../lib/validator.js';
-import { createInitialState, applyAnswer, mergeExtraction } from '../lib/state.js';
+import { createInitialState, applyAnswer, mergeExtraction, addPickedEvents } from '../lib/state.js';
 import { evaluateRules, EVENT_RULES, SLOT_PRIORITY } from '../lib/rules.js';
 import { selectNextQuestion, QUESTIONS, eventQuestion } from '../lib/questions.js';
 import { analyzeInput } from '../lib/pipeline.js';
@@ -92,14 +92,19 @@ test('복합 시나리오에서는 이미 확보한 값을 묻지 않고 공유 
     '다음 달 취업해서 반년 뒤 월세로 자취하려고 해요. 지금 천만 원 정도 모았습니다.',
     createInitialState(),
   );
-  assert.deepEqual(evaluateRules(state).missingSlots, ['monthly_income', 'contract_timing', 'deposit']);
+  assert.deepEqual(evaluateRules(state).missingSlots, [
+    'employment_type',
+    'monthly_income',
+    'contract_timing',
+    'deposit',
+  ]);
   const questions = [];
-  for (const value of ['200_300', 'm3', '1000_5000']) {
+  for (const value of ['regular', '200_300', 'm3', '1000_5000']) {
     const question = selectNextQuestion(evaluateRules(state));
     questions.push(question.key);
     state = applyAnswer(state, question, value);
   }
-  assert.deepEqual(questions, ['monthly_income', 'contract_timing', 'deposit']);
+  assert.deepEqual(questions, ['employment_type', 'monthly_income', 'contract_timing', 'deposit']);
   assert.equal(evaluateRules(state).status, 'complete');
   assert.equal(selectNextQuestion(evaluateRules(state)), null);
 });
@@ -121,7 +126,9 @@ test('미정 확인은 일반 질문보다 먼저 하며 다시 미정을 선택
   assert.equal(evaluateRules(state).status, 'deferred');
   assert.equal(selectNextQuestion(evaluateRules(state)), null);
   state = applyAnswer(state, eventQuestion('EMPLOYMENT'), 'planned');
-  assert.equal(selectNextQuestion(evaluateRules(state)).key, 'employment_timing');
+  // 입사 예정이면 입사 시기는 자동으로 채워지고, 다음 질문은 고용 형태입니다.
+  assert.equal(state.slots.employment_timing, 'upcoming');
+  assert.equal(selectNextQuestion(evaluateRules(state)).key, 'employment_type');
 });
 test('이벤트 미인식과 해당 없음은 정보 수집 완료로 오인하지 않는다', async () => {
   for (const [text, expected] of [
@@ -184,4 +191,29 @@ test('예정에서 이미 취업으로 수정하면 모순되는 입사 예정�
   state = applyAnswer(state, eventQuestion('EMPLOYMENT'), 'yes');
   assert.equal(state.slots.employment_timing, null);
   assert.equal(state.slots.monthly_income, '200_300');
+});
+
+test('문장에서 상황을 못 찾으면 직접 고른 이벤트의 상태부터 묻는다', async () => {
+  const { state } = await analyzeInput('사회초년생인데 뭐부터 해야 할지 모르겠어요.', createInitialState());
+  assert.equal(evaluateRules(state).status, 'unrecognized');
+  const picked = addPickedEvents(state, ['EMPLOYMENT', 'LOAN']);
+  const result = evaluateRules(picked);
+  assert.deepEqual(result.pendingEvents, ['EMPLOYMENT', 'LOAN']);
+  assert.equal(selectNextQuestion(result).kind, 'event');
+  assert.throws(() => addPickedEvents(picked, ['EMPLOYMENT']));
+});
+
+test('답이 하나로 정해지는 질문은 묻지 않고 채운다', async () => {
+  // 입사 예정이면 입사 시기는 '입사 예정'뿐이고, 월급을 이미 받았으면 월급 시기는 '이미 받음'뿐입니다.
+  const picked = addPickedEvents(createInitialState(), ['EMPLOYMENT', 'SALARY']);
+  let state = applyAnswer(picked, eventQuestion('EMPLOYMENT'), 'planned');
+  state = applyAnswer(state, eventQuestion('SALARY'), 'yes');
+  assert.equal(state.slots.employment_timing, 'upcoming');
+  assert.equal(state.slots.salary_timing, 'received');
+  assert.equal(state.meta.slotSources.employment_timing, 'inferred');
+  const asked = evaluateRules(state).missingSlots;
+  assert.ok(!asked.includes('employment_timing') && !asked.includes('salary_timing'));
+  // 상태를 바꾸면 모순되는 자동값은 지우고 다시 묻습니다.
+  state = applyAnswer(state, eventQuestion('EMPLOYMENT'), 'yes');
+  assert.equal(state.slots.employment_timing, null);
 });

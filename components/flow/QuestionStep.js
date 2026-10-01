@@ -3,11 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EVENTS, SLOTS, STATUSES, availableOptions } from '../../lib/schema.js';
-import { applyAnswer } from '../../lib/state.js';
+import { applyAnswer, addPickedEvents } from '../../lib/state.js';
 import { evaluateRules } from '../../lib/rules.js';
 import { selectNextQuestion, eventQuestion, QUESTIONS } from '../../lib/questions.js';
+import { stepsUsingSlot } from '../../lib/roadmap.js';
 import { useFlow } from './useFlow.js';
-import { presentQuestion, displaySlotValue, STATUS_SHORT, UNKNOWN_LABEL } from './questionCopy.js';
+import {
+  presentQuestion,
+  whyWeAsk,
+  displaySlotValue,
+  STATUS_SHORT,
+  UNKNOWN_LABEL,
+  PICKABLE_EVENTS,
+} from './questionCopy.js';
 import { SiteHeader, StepProgress, PrivacyNote, ArrowIcon } from './Chrome.js';
 
 const MAP_READY = ['complete', 'deferred'];
@@ -15,11 +23,12 @@ const MAP_READY = ['complete', 'deferred'];
 export default function QuestionStep() {
   const router = useRouter();
   const { flow, update, persistent } = useFlow();
-  const unrecognized = flow && !Object.keys(flow.engine.events).length;
+  // 입력 없이 들어온 경우에만 상황 입력으로 돌려보냅니다. 입력은 있는데 상황을 못 찾았으면 직접 고르게 합니다.
+  const noInput = flow && !flow.text.trim() && !Object.keys(flow.engine.events).length;
   useEffect(() => {
-    if (unrecognized) router.replace('/start');
-  }, [unrecognized, router]);
-  if (!flow || unrecognized) return <Shell persistent={persistent} />;
+    if (noInput) router.replace('/start');
+  }, [noInput, router]);
+  if (!flow || noInput) return <Shell persistent={persistent} />;
 
   const { engine, history } = flow;
   const result = evaluateRules(engine);
@@ -38,29 +47,37 @@ export default function QuestionStep() {
     if (!selectNextQuestion(after) && MAP_READY.includes(after.status)) router.push('/map');
   }
 
+  let body;
+  if (result.status === 'unrecognized')
+    body = <SituationPicker onPick={types => commit(addPickedEvents(engine, types))} />;
+  else if (question)
+    body = (
+      <QuestionCard
+        key={`${question.kind}:${question.key}:${history.length}`}
+        question={question}
+        engine={engine}
+        answered={history.length}
+        total={history.length + remaining}
+        focusOnMount={history.length > 0}
+        onAnswer={answer}
+        onBack={history.length ? goBack : null}
+      />
+    );
+  else
+    body = (
+      <Review
+        engine={engine}
+        result={result}
+        answeredNothing={history.length === 0}
+        onChange={commit}
+        onBack={history.length ? goBack : null}
+      />
+    );
+
   return (
     <Shell persistent={persistent}>
       <Understood text={flow.text} engine={engine} />
-      {question ? (
-        <QuestionCard
-          key={`${question.kind}:${question.key}:${history.length}`}
-          question={question}
-          engine={engine}
-          answered={history.length}
-          total={history.length + remaining}
-          focusOnMount={history.length > 0}
-          onAnswer={answer}
-          onBack={history.length ? goBack : null}
-        />
-      ) : (
-        <Review
-          engine={engine}
-          result={result}
-          answeredNothing={history.length === 0}
-          onChange={commit}
-          onBack={history.length ? goBack : null}
-        />
-      )}
+      {body}
     </Shell>
   );
 }
@@ -81,25 +98,85 @@ function Shell({ children, persistent }) {
 }
 
 function Understood({ text, engine }) {
+  const events = Object.entries(engine.events);
   const extracted = Object.entries(engine.slots).filter(
     ([key, value]) => value !== null && engine.meta.slotSources[key] === 'extracted',
   );
+  const recognized = events.some(([, event]) => !event.picked) || extracted.length > 0;
   return (
     <section className="card understood" aria-label="이해한 내용">
-      <p className="understood__label">이렇게 이해했어요. 말씀하신 내용은 다시 묻지 않아요.</p>
+      <p className="understood__label">
+        {recognized
+          ? '이렇게 이해했어요. 말씀하신 내용은 다시 묻지 않아요.'
+          : '말씀하신 내용에서 정확한 상황을 찾지 못했어요.'}
+      </p>
       <blockquote className="understood__quote">“{text}”</blockquote>
-      <ul className="tag-list">
-        {Object.entries(engine.events).map(([type, event]) => (
-          <li key={type} className="tag">
-            {EVENTS[type]} · {STATUS_SHORT[event.status]}
-          </li>
+      {(events.length > 0 || extracted.length > 0) && (
+        <ul className="tag-list">
+          {events.map(([type, event]) => (
+            <li key={type} className="tag">
+              {EVENTS[type]} ·{' '}
+              {event.status !== 'uncertain'
+                ? STATUS_SHORT[event.status]
+                : engine.meta.confirmedUncertain.includes(type)
+                  ? '보류'
+                  : event.picked
+                    ? '직접 고름'
+                    : '확인 필요'}
+            </li>
+          ))}
+          {extracted.map(([key, value]) => (
+            <li key={key} className="tag tag--soft">
+              {SLOTS[key].label} · {displaySlotValue(key, value, SLOTS[key].options)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+// 문장에서 상황을 찾지 못했을 때: 막히지 않고 가까운 상황을 골라 질문으로 이어갑니다.
+function SituationPicker({ onPick }) {
+  const [picked, setPicked] = useState([]);
+  const toggle = type =>
+    setPicked(current => (current.includes(type) ? current.filter(t => t !== type) : [...current, type]));
+  return (
+    <section className="question" aria-labelledby="picker-title">
+      <div className="flow-heading">
+        <h1 id="picker-title">어떤 상황에 가까운지 골라 주세요</h1>
+        <p>해당하는 것을 모두 고르면, 하나씩 조금 더 여쭤볼게요.</p>
+      </div>
+      <div className="options" role="group" aria-labelledby="picker-title">
+        {PICKABLE_EVENTS.map(item => (
+          <button
+            key={item.type}
+            type="button"
+            className="option option--check"
+            aria-pressed={picked.includes(item.type)}
+            onClick={() => toggle(item.type)}
+          >
+            <span className="option__box" aria-hidden="true" />
+            <span className="option__text">
+              <strong>{item.title}</strong>
+              <span>{item.summary}</span>
+            </span>
+          </button>
         ))}
-        {extracted.map(([key, value]) => (
-          <li key={key} className="tag tag--soft">
-            {SLOTS[key].label} · {displaySlotValue(key, value, SLOTS[key].options)}
-          </li>
-        ))}
-      </ul>
+      </div>
+      <div className="flow-nav">
+        <Link href="/start" className="btn btn--ghost">
+          상황 다시 쓰기
+        </Link>
+        <button
+          type="button"
+          className="btn btn--primary btn--md"
+          disabled={!picked.length}
+          onClick={() => onPick(PICKABLE_EVENTS.map(item => item.type).filter(type => picked.includes(type)))}
+        >
+          {picked.length ? `${picked.length}개 골랐어요` : '골라 주세요'} <ArrowIcon />
+        </button>
+      </div>
     </section>
   );
 }
@@ -110,7 +187,8 @@ function QuestionCard({ question, engine, answered, total, focusOnMount, onAnswe
   useEffect(() => {
     if (focusOnMount) titleRef.current?.focus();
   }, [focusOnMount]);
-  const view = presentQuestion(question);
+  const view = presentQuestion(question, engine.events[question.key]);
+  const why = whyWeAsk(question, question.kind === 'slot' ? stepsUsingSlot(engine, question.key) : []);
   const choice = view.options.find(option => option.value === selected);
 
   // 이 답으로 질문이 끝나는지 미리 계산해 버튼 문구를 정합니다.
@@ -137,6 +215,25 @@ function QuestionCard({ question, engine, answered, total, focusOnMount, onAnswe
           {view.title}
         </h1>
         <p>{view.hint}</p>
+        {why && (
+          <p className="question__why">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z" />
+              <path d="M9 3v15M15 6v15" />
+            </svg>
+            <span>{why}</span>
+          </p>
+        )}
       </div>
       <div className="options" role="group" aria-labelledby="question-title">
         {view.options.map(option => (

@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeInput } from '../lib/pipeline.js';
 import { createInitialState, applyAnswer } from '../lib/state.js';
-import { evaluateRules } from '../lib/rules.js';
+import { evaluateRules, EVENT_RULES } from '../lib/rules.js';
 import { selectNextQuestion } from '../lib/questions.js';
-import { buildRoadmap, STEP_CATALOG } from '../lib/roadmap.js';
+import { buildRoadmap, STEP_CATALOG, stepsUsingSlot, depositGap } from '../lib/roadmap.js';
 import { EXAMPLE_SITUATIONS } from '../lib/examples.js';
 
 async function answerAll(text, pick = options => options[0].value) {
@@ -89,4 +89,42 @@ test('예시 상황은 모두 해석되고 서로 다른 지도를 만든다', a
     maps.push(ids(roadmap).join(','));
   }
   assert.equal(new Set(maps).size, EXAMPLE_SITUATIONS.length);
+});
+
+test('묻는 질문은 모두 지도의 어떤 단계에 반영된다', async () => {
+  const usedSlots = new Set(STEP_CATALOG.flatMap(step => step.uses || []));
+  for (const slot of new Set(Object.values(EVENT_RULES).flatMap(rule => Object.values(rule).flat())))
+    assert.ok(usedSlots.has(slot), `${slot}: 어느 단계의 uses에도 없음`);
+  // 실제 흐름에서도 질문을 받는 순간 반영될 단계가 지도에 있어야 합니다.
+  const texts = [...EXAMPLE_SITUATIONS.map(example => example.text), '이번에 취업했어요.', '독립을 준비하고 있어요.'];
+  for (const text of texts)
+    for (const pick of [options => options[0].value, options => options.at(-1).value]) {
+      let { state } = await analyzeInput(text, createInitialState());
+      for (let q, guard = 0; (q = selectNextQuestion(evaluateRules(state))) && guard < 30; guard++) {
+        if (q.kind === 'slot') assert.ok(stepsUsingSlot(state, q.key).length > 0, `${text}: ${q.key}`);
+        state = applyAnswer(state, q, q.kind === 'event' ? 'planned' : pick(q.options));
+      }
+    }
+});
+
+test('보증금과 모아둔 돈을 비교해 부족 여부를 알려 준다', () => {
+  assert.equal(depositGap({ savings: 'lt500', deposit: '1000_5000' }), 'short');
+  assert.equal(depositGap({ savings: '500_2000', deposit: 'gt5000' }), 'short');
+  assert.equal(depositGap({ savings: 'gt2000', deposit: 'lt1000' }), 'enough');
+  assert.equal(depositGap({ savings: '500_2000', deposit: '1000_5000' }), 'maybe');
+  assert.equal(depositGap({ savings: 'unknown', deposit: '1000_5000' }), null);
+});
+
+test('같은 상황이라도 답에 따라 지도 내용이 달라진다', async () => {
+  const text = '다음 달에 취업해서 반년 뒤 월세로 자취하려고 해요. 지금 천만 원 정도 모았습니다.';
+  const answer = values => options => values.find(v => options.some(o => o.value === v)) ?? options[0].value;
+  const regular = buildRoadmap(await answerAll(text, answer(['regular', '200_300', 'm6', 'lt1000'])));
+  const freelance = buildRoadmap(await answerAll(text, answer(['freelance', 'lt200', 'm1', 'gt5000'])));
+  assert.ok(!ids(regular).includes('irregular_income'));
+  assert.ok(ids(freelance).includes('irregular_income'));
+  const personal = (roadmap, id) => roadmap.steps.find(step => step.id === id).personal.join(' ');
+  assert.match(personal(freelance, 'housing_type'), /모아둔 돈보다 많아요/);
+  assert.match(personal(regular, 'housing_type'), /비슷한 범위/);
+  assert.match(personal(freelance, 'contract_check'), /한 달 안/);
+  assert.notEqual(personal(regular, 'emergency'), personal(freelance, 'emergency'));
 });
