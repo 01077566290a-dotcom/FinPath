@@ -53,7 +53,13 @@ export default function QuestionStep() {
           onBack={history.length ? goBack : null}
         />
       ) : (
-        <Review engine={engine} result={result} onChange={commit} onBack={history.length ? goBack : null} />
+        <Review
+          engine={engine}
+          result={result}
+          answeredNothing={history.length === 0}
+          onChange={commit}
+          onBack={history.length ? goBack : null}
+        />
       )}
     </Shell>
   );
@@ -174,7 +180,7 @@ function QuestionCard({ question, engine, answered, total, focusOnMount, onAnswe
   );
 }
 
-function Review({ engine, result, onChange, onBack }) {
+function Review({ engine, result, answeredNothing, onChange, onBack }) {
   const ready = MAP_READY.includes(result.status);
   const setEvent = (type, value) => onChange(applyAnswer(engine, eventQuestion(type), value));
   const setSlot = (key, value) =>
@@ -185,10 +191,18 @@ function Review({ engine, result, onChange, onBack }) {
   return (
     <section className="question review" aria-labelledby="review-title">
       <div className="flow-heading">
-        <h1 id="review-title">{ready ? '필요한 내용을 모두 확인했어요' : '지도에 담을 계획이 없어요'}</h1>
+        <h1 id="review-title">
+          {!ready
+            ? '지도에 담을 계획이 없어요'
+            : answeredNothing
+              ? '추가로 여쭤볼 게 없어요'
+              : '필요한 내용을 모두 확인했어요'}
+        </h1>
         <p>
           {ready
-            ? '답을 바꾸고 싶으면 아래에서 고칠 수 있어요. 바꾸면 지도도 다시 만들어요.'
+            ? answeredNothing
+              ? '말씀해 주신 내용만으로 지도를 만들 수 있어요. 이해한 내용이 다르면 아래에서 고쳐 주세요.'
+              : '답을 바꾸고 싶으면 아래에서 고칠 수 있어요. 바꾸면 지도도 다시 만들어요.'
             : '말씀하신 계획이 모두 해당 없음이에요. 상태를 바꾸거나 상황을 다시 적어 주세요.'}
         </p>
       </div>

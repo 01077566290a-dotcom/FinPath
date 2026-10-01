@@ -1,6 +1,15 @@
 // 데모1 회귀 데이터: 모호한 정보의 기대값 null은 의도적인 재질문입니다.
 // 새 표현은 구현보다 먼저 이 목록에 기대 결과와 함께 추가합니다.
 export const languageCases = [
+  // 진행 중인 상환·자취는 현재(yes)로 봅니다. '준비하고 있어요'는 여전히 미정입니다.
+  { text: '학자금 대출을 갚고 있어요.', events: { LOAN: 'yes' }, slots: { loan_type: 'student' } },
+  { text: '대출 1500만원 상환 중이에요.', events: { LOAN: 'yes' }, slots: { loan_amount: '1000_5000' } },
+  {
+    text: '월세로 자취하고 있어요.',
+    events: { INDEPENDENCE: 'yes', HOUSING: 'yes' },
+    slots: { housing_type: 'monthly' },
+  },
+  { text: '독립을 준비하고 있어요.', events: { INDEPENDENCE: 'uncertain' }, slots: {} },
   {
     text: '월급 260만원인데 6개월 뒤 독립하려고 해요.',
     events: { SALARY: 'uncertain', INDEPENDENCE: 'planned' },
