@@ -10,6 +10,17 @@ export const languageCases = [
     slots: { housing_type: 'monthly' },
   },
   { text: '독립을 준비하고 있어요.', events: { INDEPENDENCE: 'uncertain' }, slots: {} },
+  // 조사 '이·일·사·오'를 숫자로 읽지 않습니다. (예: 대출이 2천 → 22,000만원으로 오인하던 버그)
+  { text: '학자금 대출이 2천 정도 남아 있어요.', events: { LOAN: 'yes' }, slots: { loan_amount: '1000_5000' } },
+  { text: '월급이 삼백만원이에요.', events: { SALARY: 'uncertain' }, slots: { monthly_income: '200_300' } },
+  // 고용 형태는 후속 질문을 줄이기 위해 문장에서도 찾습니다.
+  {
+    text: '계약직으로 6개월 일하게 됐어요.',
+    events: { EMPLOYMENT: 'yes' },
+    slots: { employment_type: 'contract' },
+  },
+  { text: '프리랜서로 일하고 있어요.', events: { EMPLOYMENT: 'yes' }, slots: { employment_type: 'freelance' } },
+  { text: '정규직으로 다음 달 입사해요.', events: { EMPLOYMENT: 'planned' }, slots: { employment_type: 'regular' } },
   {
     text: '월급 260만원인데 6개월 뒤 독립하려고 해요.',
     events: { SALARY: 'uncertain', INDEPENDENCE: 'planned' },

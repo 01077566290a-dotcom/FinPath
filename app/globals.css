@@ -855,7 +855,7 @@ select:focus-visible,
   border: 2px solid var(--primary);
   color: #fff;
 }
-.map-card.is-done:not(.is-selected) span {
+.map-card.is-done:not(.is-selected) .map-card__text > span:first-child {
   color: var(--muted);
   text-decoration: line-through;
 }
@@ -972,6 +972,110 @@ select:focus-visible,
   flex-wrap: wrap;
   max-width: var(--content);
   padding-bottom: 16px;
+}
+
+/* 질문 품질 보완: 왜 묻는지, 상황 고르기, 내 답변 반영 */
+.question__why {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--accent);
+}
+.question__why svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.option--check {
+  min-height: 72px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.option--check[aria-pressed='true'] {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+.option__box {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--dot);
+  background: var(--surface);
+}
+.option--check[aria-pressed='true'] .option__box {
+  border-color: var(--focus);
+  background: var(--focus)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E")
+    center / 14px no-repeat;
+}
+.option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.option__text strong {
+  font-size: 18px;
+  font-weight: 500;
+}
+.option__text span {
+  font-size: 15px;
+  color: var(--muted);
+}
+.map-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.map-card__badge {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--done-bg);
+  border-radius: 6px;
+  padding: 1px 7px;
+}
+.map-card.is-selected .map-card__badge {
+  color: var(--primary);
+  background: #ffffff;
+}
+.map-pop__personal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--done-bg);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.map-pop__personal h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.map-pop__personal ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.map-pop__personal li {
+  position: relative;
+  padding-left: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.map-pop__personal li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 /* 좁은 화면: 줄기를 왼쪽으로 옮기고 설명은 아래 시트로 */

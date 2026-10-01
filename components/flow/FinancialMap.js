@@ -7,7 +7,7 @@ import { createFlow } from '../../lib/flowStore.js';
 import { useFlow } from './useFlow.js';
 import { SiteHeader, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
 
-const REDIRECT = { unrecognized: '/start', collecting: '/questions', not_applicable: '/questions' };
+const REDIRECT = { unrecognized: '/questions', collecting: '/questions', not_applicable: '/questions' };
 
 export default function FinancialMap() {
   const router = useRouter();
@@ -179,7 +179,10 @@ function MapBoard({ roadmap, done, onToggleDone }) {
                       aria-label={`${step.number}번 ${step.title}${done[step.id] ? ' (완료)' : ''}`}
                       onClick={() => setSelectedId(current => (current === step.id ? null : step.id))}
                     >
-                      <span>{step.title}</span>
+                      <span className="map-card__text">
+                        <span>{step.title}</span>
+                        {step.personal.length > 0 && <span className="map-card__badge">내 답변 반영</span>}
+                      </span>
                     </button>
                     <i className="map__link" aria-hidden="true" />
                   </div>
@@ -233,6 +236,16 @@ function MapBoard({ roadmap, done, onToggleDone }) {
             </p>
           )}
           {selected.note && <p className="info-note">{selected.note}</p>}
+          {selected.personal.length > 0 && (
+            <div className="map-pop__personal">
+              <h3>내 답변 기준</h3>
+              <ul>
+                {selected.personal.map(line => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="map-pop__block">
             <h3>왜 지금 알아봐야 하나요</h3>
             <p>{selected.why}</p>
