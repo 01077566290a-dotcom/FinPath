@@ -5,7 +5,7 @@ import { ReportSheet } from './ReportSheet.js';
 
 // 지도 화면 위에 띄우는 리포트 팝업. 닫으면 뒤의 타임라인 지도가 보입니다.
 // 브라우저 기본 <dialog>를 써서 포커스가 팝업 안에 머물고, Esc·바깥 클릭으로 닫힙니다.
-export default function ReportDialog({ open, report, edited, onClose }) {
+export default function ReportDialog({ open, plan, demo, onClose }) {
   const ref = useRef(null);
   const closeRef = useRef(null);
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function ReportDialog({ open, report, edited, onClose }) {
     >
       <div className="rp-dialog__bar">
         <p className="rp-dialog__title">
-          <strong>나의 독립 자금 리포트</strong>
+          <strong>나의 맞춤 리포트</strong>
           <span>닫으면 타임라인 지도를 볼 수 있어요</span>
         </p>
         <div className="rp-dialog__actions">
@@ -43,7 +43,9 @@ export default function ReportDialog({ open, report, edited, onClose }) {
           </button>
         </div>
       </div>
-      <div className="rs-page rs-page--dialog">{open && <ReportSheet report={report} edited={edited} />}</div>
+      <div className="rs-page rs-page--dialog">
+        {open && <ReportSheet key={demo ? 'demo' : 'mine'} plan={plan} demo={demo} />}
+      </div>
     </dialog>
   );
 }

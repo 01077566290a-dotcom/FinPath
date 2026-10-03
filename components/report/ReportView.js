@@ -1,15 +1,14 @@
 'use client';
-import { useMemo } from 'react';
-import { computeReport } from '../../lib/report/computeReport.js';
 import { SiteHeader } from '../flow/Chrome.js';
 import { ReportSheet } from './ReportSheet.js';
 import ReportEditor from './ReportEditor.js';
-import { useReportInput } from './useReportInput.js';
+import { usePlan } from './usePlan.js';
+import { useGoalAnswers } from './useGoalAnswers.js';
 
-// /report 전체 페이지: 값 바꿔 보기 + 리포트 + 인쇄
+// /report 전체 페이지: 내 숫자로 바꿔 보기(입력 화면의 답) + 리포트(2번 엔진 결과) + 인쇄
 export default function ReportView() {
-  const { input, edited, update, reset } = useReportInput();
-  const report = useMemo(() => computeReport(input), [input]);
+  const { plan, demo } = usePlan();
+  const { answers, mode, update, reset } = useGoalAnswers();
   return (
     <>
       <SiteHeader>
@@ -18,8 +17,8 @@ export default function ReportView() {
         </button>
       </SiteHeader>
       <main className="rs-page">
-        <ReportEditor input={input} edited={edited} onChange={update} onReset={reset} />
-        <ReportSheet report={report} edited={edited} />
+        <ReportEditor answers={answers} mode={mode} onAnswer={update} onReset={reset} />
+        <ReportSheet key={demo ? 'demo' : 'mine'} plan={plan} demo={demo} />
       </main>
     </>
   );
