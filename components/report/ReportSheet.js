@@ -1,10 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { monthsWithExtra, savingsSeries } from '../../lib/report/computeReport.js';
+import Link from 'next/link';
+import { viewFromPlan, monthsWithExtra, savingsLine } from '../../lib/report/fromPlan.js';
 import { money, monthLabel, duration } from '../../lib/report/format.js';
 import { SavingsLines } from './charts.js';
+import PlanSection from './PlanSection.js';
 
-const EMPLOYMENT = { regular: '정규직', contract: '계약직', freelance: '프리랜서' };
 const pct = (value, total) => (total > 0 ? Math.max(0, Math.min(100, (value / total) * 100)) : 0);
 
 // 상태는 색만으로 전달하지 않고 아이콘 + 글자를 함께 씁니다.
@@ -48,119 +49,134 @@ function Card({ title, sub, tone, children, id }) {
 }
 
 // 리포트 본문. /report 페이지와 지도 화면의 팝업에서 함께 씁니다.
-export function ReportSheet({ report, edited = false }) {
-  const { input, core, targets, cashflow, cuts, fixes, checks, milestones, status, verdict, allocation } = report;
-  const { profile, housing } = input;
+// plan은 2번 엔진 buildPlan(profile)의 결과이고, 화면용 정리는 lib/report/fromPlan.js가 합니다.
+export function ReportSheet({ plan, demo = false }) {
+  const view = useMemo(() => viewFromPlan(plan, { demo }), [plan, demo]);
+  const { core, cashflow, cuts, fixes, checks, milestones, status, verdict, goals } = view;
 
-  // 아낄 항목은 사용자가 직접 켜고 끕니다. 고른 만큼 숫자와 그래프가 바로 바뀝니다.
+  // 아낄 항목은 사용자가 직접 켜고 끕니다. 고른 만큼 엔진 시뮬레이션으로 다시 계산합니다.
   const [picked, setPicked] = useState(() => cuts.map(cut => cut.id));
   const selected = cuts.filter(cut => picked.includes(cut.id));
   const extra = selected.reduce((total, cut) => total + cut.cut, 0);
-  const monthsCut = extra > 0 ? monthsWithExtra(report, extra) : core.monthsNeeded;
+  const monthsCut = useMemo(
+    () => (extra > 0 ? monthsWithExtra(plan, extra) : core.monthsNeeded),
+    [plan, extra, core.monthsNeeded],
+  );
   const sooner = monthsCut !== null && core.monthsNeeded !== null ? core.monthsNeeded - monthsCut : null;
-  const base = useMemo(() => savingsSeries(report, 0), [report]);
-  const withCut = useMemo(() => (extra > 0 ? savingsSeries(report, extra) : base), [report, extra, base]);
+  const base = useMemo(() => savingsLine(view, 0), [view]);
+  const withCut = useMemo(() => (extra > 0 ? savingsLine(view, extra) : base), [view, extra, base]);
   const maxAnnual = Math.max(1, ...cuts.map(cut => cut.annual));
-  // 아낀 결과 한 덩어리: [작은 제목, 큰 숫자, 보조 문장]
-  const saveWithCut = cashflow.now.save + extra;
+  const saveWithCut = view.saveNow + extra;
   const cutResult =
     extra === 0
       ? ['아낄 항목을', '골라 보세요', '숫자가 바로 바뀌어요']
       : saveWithCut <= 0
         ? ['아껴도', `매달 ${money(-saveWithCut)} 부족`, '더 줄일 항목이 필요해요']
         : sooner !== null && sooner > 0
-          ? ['독립', `${duration(sooner)} 빨라져요`, `${monthLabel(input.asOf, monthsCut)} 가능`]
+          ? [
+              view.hasHousing ? '독립' : '목표 달성',
+              `${duration(sooner)} 빨라져요`,
+              `${monthLabel(view.asOf, monthsCut)} 가능`,
+            ]
           : core.monthsNeeded === null && monthsCut !== null
-            ? ['아끼면', monthLabel(input.asOf, monthsCut), '독립할 수 있어요']
+            ? ['아끼면', monthLabel(view.asOf, monthsCut), '다 모을 수 있어요']
             : ['모으는 돈', `1년 +${money(extra * 12)}`, '여유가 더 늘어요'];
 
-  const title = profile.name ? `${profile.name} 님의 독립 자금 리포트` : '나의 독립 자금 리포트';
-  const meta = [
-    report.asOfLabel + ' 기준',
-    [input.region, housing.type === 'jeonse' ? '전세' : '월세'].filter(Boolean).join(' '),
-    [EMPLOYMENT[profile.employment], profile.tenure].filter(Boolean).join(' '),
-  ].filter(Boolean);
-
-  // 진행 막대: 모아둔 돈 · 앞으로 모을 돈 · 부족분 (전체 = 필요한 돈과 모을 돈 중 큰 값)
-  const scale = Math.max(core.needed, core.collectable, 1);
-  const savedW = pct(core.saved, scale);
-  const futureW = pct(core.future, scale);
-  const gapW = pct(core.gap, scale);
-  const goalAt = core.goal > 0 ? pct(core.goal, scale) : null;
-  const neededAt = pct(core.needed, scale);
+  // 진행 막대: 모아둔 돈 · 앞으로 모을 돈 · 부족분 (기한이 있을 때)
+  const hasDeadline = core.deadline !== null;
+  const scale = Math.max(core.needed, core.collectable ?? 0, 1);
+  const goalAt = core.goal ? pct(core.goal, scale) : null;
 
   return (
     <article className="rs" aria-labelledby="rp-title">
       <header className="rs-head">
         <div>
-          <h1 id="rp-title">{title}</h1>
-          <p>{meta.join(' · ')}</p>
+          <h1 id="rp-title">{view.title}</h1>
+          <p>{view.meta.join(' · ')}</p>
         </div>
-        <span className={`rs-badge${edited ? ' rs-badge--edited' : ''}`}>
-          {edited ? '직접 입력한 값' : '시연 데이터'}
-        </span>
+        <span className={`rs-badge${demo ? '' : ' rs-badge--edited'}`}>{demo ? '시연 데이터' : '내 답변 기준'}</span>
       </header>
+      {demo && (
+        <p className="rs-demo-note">
+          지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">내 돈 상황을 입력</Link>하거나 아래 ‘내 숫자로 바꿔
+          보기’에서 고치면 내 숫자로 바뀌어요.
+        </p>
+      )}
 
       {/* 1. 핵심: 모을 수 있는 돈 */}
       <section className="rs-card rs-hero" aria-labelledby="rs-hero-title">
         <p id="rs-hero-title" className="rs-hero__label">
-          {core.deadline}까지 모을 수 있는 돈
+          {hasDeadline ? `${core.deadlineLabel}까지 모을 수 있는 돈` : `${view.purposeLabel}에 필요한 돈`}
         </p>
         <p className="rs-hero__amount">
-          {money(core.collectable, { unit: false })}
+          {money(hasDeadline ? core.collectable : core.needed, { unit: false })}
           <span>원</span>
         </p>
         <p className="rs-hero__need">
-          필요한 돈 <b>{money(core.needed)}</b>
+          {hasDeadline ? (
+            <>
+              필요한 돈 <b>{money(core.needed)}</b>
+            </>
+          ) : (
+            <>
+              지금 모아둔 돈 <b>{money(core.saved)}</b>
+            </>
+          )}
         </p>
 
-        <div className="rs-progress" aria-hidden="true">
-          <div className="rs-progress__track">
-            <span className="rs-progress__saved" style={{ width: `${savedW}%` }} />
-            <span className="rs-progress__future" style={{ width: `${futureW}%` }} />
-            {gapW > 0 && <span className="rs-progress__gap" style={{ width: `${gapW}%` }} />}
-          </div>
-          <span className="rs-progress__mark rs-progress__mark--need" style={{ left: `${neededAt}%` }} />
-          {goalAt !== null && (
-            <span className="rs-progress__mark rs-progress__mark--goal" style={{ left: `${goalAt}%` }}>
-              <em>생각한 목표</em>
-            </span>
-          )}
-        </div>
-
-        <dl className="rs-hero__parts">
-          <div>
-            <dt>
-              <i className="rs-dot rs-dot--saved" aria-hidden="true" />
-              지금 모아둔 돈
-            </dt>
-            <dd>{money(core.saved)}</dd>
-          </div>
-          <div>
-            <dt>
-              <i className="rs-dot rs-dot--future" aria-hidden="true" />
-              앞으로 {core.deadlineMonths}개월 모을 돈
-            </dt>
-            <dd>{money(core.future)}</dd>
-          </div>
-          {core.gap > 0 ? (
-            <div className="rs-hero__gap">
-              <dt>
-                <i className="rs-dot rs-dot--gap" aria-hidden="true" />
-                부족한 돈
-              </dt>
-              <dd>{money(core.gap)}</dd>
+        {hasDeadline && (
+          <>
+            <div className="rs-progress" aria-hidden="true">
+              <div className="rs-progress__track">
+                <span className="rs-progress__saved" style={{ width: `${pct(core.saved, scale)}%` }} />
+                <span className="rs-progress__future" style={{ width: `${pct(core.future, scale)}%` }} />
+                {core.gap > 0 && <span className="rs-progress__gap" style={{ width: `${pct(core.gap, scale)}%` }} />}
+              </div>
+              <span
+                className="rs-progress__mark rs-progress__mark--need"
+                style={{ left: `${pct(core.needed, scale)}%` }}
+              />
+              {goalAt !== null && (
+                <span className="rs-progress__mark rs-progress__mark--goal" style={{ left: `${goalAt}%` }}>
+                  <em>생각한 목표</em>
+                </span>
+              )}
             </div>
-          ) : (
-            <div>
-              <dt>
-                <i className="rs-dot rs-dot--future" aria-hidden="true" />
-                여유
-              </dt>
-              <dd>{money(core.surplus)}</dd>
-            </div>
-          )}
-        </dl>
+            <dl className="rs-hero__parts">
+              <div>
+                <dt>
+                  <i className="rs-dot rs-dot--saved" aria-hidden="true" />
+                  지금 모아둔 돈
+                </dt>
+                <dd>{money(core.saved)}</dd>
+              </div>
+              <div>
+                <dt>
+                  <i className="rs-dot rs-dot--future" aria-hidden="true" />
+                  앞으로 {core.deadline}개월 모을 돈
+                </dt>
+                <dd>{money(core.future)}</dd>
+              </div>
+              {core.gap > 0 ? (
+                <div className="rs-hero__gap">
+                  <dt>
+                    <i className="rs-dot rs-dot--gap" aria-hidden="true" />
+                    부족한 돈
+                  </dt>
+                  <dd>{money(core.gap)}</dd>
+                </div>
+              ) : (
+                <div>
+                  <dt>
+                    <i className="rs-dot rs-dot--future" aria-hidden="true" />
+                    여유
+                  </dt>
+                  <dd>{money(core.surplus)}</dd>
+                </div>
+              )}
+            </dl>
+          </>
+        )}
 
         <div className={`rs-verdict rs-verdict--${verdict.tone}`}>
           <Status tone={verdict.tone}>{verdict.headline}</Status>
@@ -178,7 +194,7 @@ export function ReportSheet({ report, edited = false }) {
         <Card
           id="rs-cut"
           title="아끼면 이만큼 빨라져요"
-          sub="줄일 항목을 골라 보세요. 숫자가 바로 바뀌어요."
+          sub="줄일 수 있다고 답한 항목이에요. 골라 보면 숫자가 바로 바뀌어요."
           tone="good"
         >
           <div className="rs-cut__sum">
@@ -222,7 +238,7 @@ export function ReportSheet({ report, edited = false }) {
         </Card>
       )}
 
-      {/* 3. 언제 독립할 수 있을까 */}
+      {/* 3. 언제 다 모을 수 있을까 */}
       <Card
         id="rs-speed"
         title="언제 다 모을 수 있을까요"
@@ -230,53 +246,61 @@ export function ReportSheet({ report, edited = false }) {
           core.monthsNeeded === 0
             ? '이미 필요한 돈을 모았어요'
             : core.monthsNeeded === null
-              ? '지금 계획으로는 필요한 돈에 닿지 않아요'
-              : `지금 계획 ${duration(core.monthsNeeded)}${extra > 0 && monthsCut !== null && monthsCut !== core.monthsNeeded ? ` → 아끼면 ${duration(monthsCut)}` : ''}`
+              ? '지금 속도로는 필요한 돈에 닿지 않아요'
+              : `지금 속도 ${duration(core.monthsNeeded)}${
+                  extra > 0 && monthsCut !== null && monthsCut !== core.monthsNeeded
+                    ? ` → 아끼면 ${duration(monthsCut)}`
+                    : ''
+                }`
         }
       >
         <SavingsLines
           base={base}
           saving={withCut}
           target={core.needed}
-          deadline={core.deadlineMonths}
+          deadline={core.deadline ?? Infinity}
           savingLabel={`매달 ${money(extra)} 아끼면`}
-          ariaLabel={`필요한 돈 ${money(core.needed)}. 지금 계획이면 ${core.monthsNeeded ?? '닿지 않음'}개월, 아끼면 ${monthsCut ?? '닿지 않음'}개월`}
+          ariaLabel={`필요한 돈 ${money(core.needed)}. 지금 속도면 ${core.monthsNeeded ?? '닿지 않음'}개월, 아끼면 ${monthsCut ?? '닿지 않음'}개월`}
         />
+        {view.hasHousing && (
+          <p className="rs-note-muted">
+            독립하면 모으는 속도가 바뀌어서, 실제 완성 시점은 비상자금을 먼저 채우는 순서(규칙 A)로 계산했어요.
+          </p>
+        )}
       </Card>
 
-      {/* 4. 매달 돈의 흐름 */}
+      {/* 4. 매달 모으는 돈 */}
       <Card id="rs-flow" title="매달 모으는 돈" sub={`월급 ${money(cashflow.income)} 중에서`}>
         <div className="rs-flow">
-          {[
-            ['지금', cashflow.now],
-            ['독립 후', cashflow.after],
-          ].map(([label, row]) => (
-            <div key={label} className="rs-flow__row">
-              <span className="rs-flow__label">{label}</span>
-              <div className="rs-flow__bar" aria-hidden="true">
-                <span
-                  className="rs-flow__spend"
-                  style={{ width: `${pct(row.spend, Math.max(cashflow.income, row.spend))}%` }}
-                />
-                {row.save > 0 && (
-                  <span className="rs-flow__save" style={{ width: `${pct(row.save, cashflow.income)}%` }} />
-                )}
+          {[['지금', cashflow.now], ...(cashflow.hasHousing ? [['독립 후', cashflow.after]] : [])].map(
+            ([label, row]) => (
+              <div key={label} className="rs-flow__row">
+                <span className="rs-flow__label">{label}</span>
+                <div className="rs-flow__bar" aria-hidden="true">
+                  <span
+                    className="rs-flow__spend"
+                    style={{ width: `${pct(row.spend, Math.max(cashflow.income, row.spend))}%` }}
+                  />
+                  {row.save > 0 && (
+                    <span className="rs-flow__save" style={{ width: `${pct(row.save, cashflow.income)}%` }} />
+                  )}
+                </div>
+                <span className={`rs-flow__value${row.save < 0 ? ' rs-flow__value--minus' : ''}`}>
+                  {row.save < 0 ? `−${money(-row.save)}` : money(row.save)}
+                  <small>{row.save < 0 ? '매달 부족' : `월급의 ${Math.round(row.rate)}%`}</small>
+                </span>
               </div>
-              <span className={`rs-flow__value${row.save < 0 ? ' rs-flow__value--minus' : ''}`}>
-                {row.save < 0 ? `−${money(-row.save)}` : money(row.save)}
-                <small>{row.save < 0 ? '매달 부족' : `월급의 ${Math.round(row.rate)}%`}</small>
-              </span>
-            </div>
-          ))}
+            ),
+          )}
           <p className="rs-flow__note">
             <i className="rs-dot rs-dot--spend" aria-hidden="true" />
             쓰는 돈
             <i className="rs-dot rs-dot--future" aria-hidden="true" />
-            모으는 돈 · 독립 후에는 월세·관리비 {money(cashflow.after.housing)} 포함
+            모으는 돈{cashflow.hasHousing ? ` · 독립 후에는 월세·관리비 ${money(cashflow.housingCost)} 포함` : ''}
           </p>
-          {cashflow.after.save < cashflow.now.save && (
-            <Status tone={report.deficitAfter ? 'serious' : 'warning'}>
-              {report.deficitAfter
+          {cashflow.hasHousing && cashflow.after.save < cashflow.now.save && (
+            <Status tone={cashflow.after.save < 0 ? 'serious' : 'warning'}>
+              {cashflow.after.save < 0
                 ? `독립하면 매달 ${money(-cashflow.after.save)}이 모자라요`
                 : `독립하면 매달 ${money(cashflow.now.save - cashflow.after.save)} 덜 모여요 · 그래서 비상자금을 먼저 채워요`}
             </Status>
@@ -284,40 +308,50 @@ export function ReportSheet({ report, edited = false }) {
         </div>
       </Card>
 
-      {/* 5. 필요한 돈 구성 */}
+      {/* 5. 목적별 필요한 돈 */}
       <Card
         id="rs-need"
         title={`필요한 돈 ${money(core.needed)}`}
         sub={
-          core.goal > 0 && core.goalDiff > 0
+          core.goal && core.goalDiff > 0
             ? `생각한 목표 ${money(core.goal)}보다 ${money(core.goalDiff)} 많아요`
-            : core.goal > 0
+            : core.goal
               ? `생각한 목표 ${money(core.goal)} 안에 들어와요`
-              : '목적별로 필요한 돈이에요'
+              : '목적별로 필요한 돈과 다 모으는 때예요'
         }
       >
         <ul className="rs-need">
-          {[
-            ['비상자금', targets.emergency, `독립 후 생활비 ${input.emergency.months}개월치`],
-            ['보증금', targets.deposit, housing.type === 'jeonse' ? '전세' : '월세'],
-            ['이사·초기 비용', targets.initialCost, '중개수수료·이사비·가전'],
-            ...(targets.loan > 0 ? [['대출로 채울 돈', -targets.loan, '필요한 돈에서 빼요']] : []),
-          ].map(([label, value, note]) => (
-            <li key={label}>
+          {goals.map(goal => (
+            <li key={goal.id}>
               <span className="rs-need__name">
-                <strong>{label}</strong>
-                <span>{note}</span>
+                <strong>{goal.label}</strong>
+                <span>
+                  {goal.monthlyOnly ? goal.note : goal.doneLabel ? `${goal.doneLabel} 완성` : '지금 속도로는 못 채워요'}
+                </span>
               </span>
               <span className="rs-need__bar" aria-hidden="true">
-                <span style={{ width: `${pct(Math.abs(value), core.needed || 1)}%` }} />
+                <span style={{ width: `${pct(goal.target, core.needed || 1)}%` }} />
               </span>
-              <span className="rs-need__value">{value < 0 ? `−${money(-value)}` : money(value)}</span>
+              <span className="rs-need__value">
+                {goal.monthlyOnly ? `월 ${money(goal.target)}` : money(goal.target)}
+              </span>
             </li>
           ))}
         </ul>
       </Card>
 
-      {/* 6. 체크 포인트 (인바디식) */}
+      {/* 6. 내 숫자로 맞춘 계획 (2번 엔진: 권장 저축률·생활비 상한·규칙 A·B 비교) */}
+      <Card
+        id="rs-plan-budget"
+        title="내 숫자로 맞춘 계획"
+        sub="월급 대비 저축률 · 생활비 상한 · 비상자금 배분 규칙 비교"
+      >
+        <div className="rs-plansection">
+          <PlanSection plan={plan} demo={false} />
+        </div>
+      </Card>
+
+      {/* 7. 체크 포인트 (인바디식) */}
       <Card id="rs-check" title="체크 포인트" sub="막대가 목표선·권장 범위와 어디쯤인지 보세요">
         <div className="rs-checks">
           {checks.map(check => (
@@ -358,7 +392,7 @@ export function ReportSheet({ report, edited = false }) {
         </div>
       </Card>
 
-      {/* 7. 부족분을 채우는 방법 */}
+      {/* 8. 부족분을 채우는 방법 */}
       {fixes.length > 0 && (
         <Card
           id="rs-fix"
@@ -377,8 +411,8 @@ export function ReportSheet({ report, edited = false }) {
         </Card>
       )}
 
-      {/* 8. 앞으로의 일정 */}
-      <Card id="rs-plan" title="앞으로의 일정" sub="비상자금을 먼저 채우고 독립 자금을 모아요">
+      {/* 9. 앞으로의 일정 */}
+      <Card id="rs-plan" title="앞으로의 일정" sub="지금 저축 속도 + 비상자금을 먼저 채우는 순서(규칙 A) 기준">
         <ol className="rs-plan">
           {milestones.map(item => (
             <li key={`${item.month}-${item.title}`} className={item.muted ? 'is-muted' : ''}>
@@ -388,23 +422,21 @@ export function ReportSheet({ report, edited = false }) {
             </li>
           ))}
         </ol>
-        {allocation.emergencyDoneLabel === null && (
-          <p className="rs-note">지금 계획으로는 비상자금을 채우지 못해요. 먼저 매달 모이는 돈을 만들어야 해요.</p>
-        )}
       </Card>
 
       <footer className="rs-foot">
         <details>
           <summary>계산 방법 보기</summary>
           <ul>
-            {report.basis.map(line => (
+            {view.basis.map(line => (
               <li key={line}>{line}</li>
             ))}
+            <li>예적금 이자와 투자 수익률은 넣지 않았어요.</li>
           </ul>
         </details>
         <p>
-          입력한 숫자로 계산한 참고용 시뮬레이션이며 실제 결과를 보장하지 않아요. 상품 추천이 아니에요. 비상자금 개월
-          수, 이사·초기 비용, 주거비 기준(30%)은 팀 결정과 출처 확인 전 임시값이에요.
+          입력한 숫자로 계산한 참고용 시뮬레이션이며 실제 결과를 보장하지 않아요. 상품 추천이 아니에요. 기준
+          비율(비상자금 개월 수, 주거비 상한 등)은 출처 확인 전 초안이라 ‘일반적으로’라고 표현했어요.
         </p>
       </footer>
     </article>

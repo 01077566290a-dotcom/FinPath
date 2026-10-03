@@ -2,53 +2,75 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { buildRoadmap } from '../../lib/roadmap.js';
-import { createFlow } from '../../lib/flowStore.js';
-import { useFlow } from './useFlow.js';
+import { buildPlanRoadmap } from '../../lib/plan/steps.js';
+import { filterPolicies } from '../../lib/goal/policies.js';
+import { policyData } from '../../lib/goal/policyData.js';
+import { clearAll } from '../../lib/goal/store.js';
+import { usePlan } from '../report/usePlan.js';
+import MoneyOrder from './MoneyOrder.js';
 import { SiteHeader, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
 import ReportDialog from '../report/ReportDialog.js';
-import { computeReport } from '../../lib/report/computeReport.js';
-import { useReportInput } from '../report/useReportInput.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
 const REPORT_CLOSED_KEY = 'finpath-report-closed';
-const readClosed = () => {
+function readClosed() {
   try {
     return window.sessionStorage.getItem(REPORT_CLOSED_KEY) === '1';
   } catch {
     return false;
   }
-};
-const writeClosed = value => {
+}
+function writeClosed(value) {
   try {
     if (value) window.sessionStorage.setItem(REPORT_CLOSED_KEY, '1');
     else window.sessionStorage.removeItem(REPORT_CLOSED_KEY);
   } catch {
     // 저장이 막혀 있어도 팝업 동작에는 문제가 없습니다.
   }
-};
+}
 
-const REDIRECT = { unrecognized: '/questions', collecting: '/questions', not_applicable: '/questions' };
+const DONE_KEY = 'finpath.plan-done'; // 단계 완료 표시 (이 브라우저에만 저장)
+function readDone() {
+  try {
+    const data = JSON.parse(window.localStorage.getItem(DONE_KEY) || '{}');
+    return data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+  } catch {
+    return {};
+  }
+}
+function writeDone(done) {
+  try {
+    window.localStorage.setItem(DONE_KEY, JSON.stringify(done));
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export default function FinancialMap() {
   const router = useRouter();
-  const { flow, update, persistent } = useFlow();
-  const engine = flow?.engine;
-  const roadmap = useMemo(() => (engine ? buildRoadmap(engine) : null), [engine]);
-  const redirect = roadmap && REDIRECT[roadmap.status];
-  useEffect(() => {
-    if (redirect) router.replace(redirect);
-  }, [redirect, router]);
+  // 지도는 입력 화면(/goal)의 프로필로 계산합니다. 입력 전에는 시연 인물(정하은)로 보여 줍니다.
+  const { plan, profile, demo } = usePlan();
+  const roadmap = useMemo(() => buildPlanRoadmap(plan, filterPolicies(profile, policyData)), [plan, profile]);
+  const [done, setDone] = useState({});
+  const [persistent, setPersistent] = useState(true);
+  useEffect(() => setDone(readDone()), []);
+  function toggleDone(id) {
+    setDone(current => {
+      const next = { ...current, [id]: !current[id] };
+      if (!next[id]) delete next[id];
+      if (!writeDone(next)) setPersistent(false);
+      return next;
+    });
+  }
 
-  // ⑤ 리포트: /report에서 직접 입력한 값이 있으면 그 값으로, 없으면 시연 인물 값으로 계산합니다.
-  const { input: reportInput, edited: reportEdited } = useReportInput();
-  const report = useMemo(() => computeReport(reportInput), [reportInput]);
-  const ready = Boolean(roadmap && !redirect);
+  // ⑤ 맞춤 리포트: 지도에 처음 들어오면 팝업으로 앞에 뜨고, 닫으면 뒤의 지도가 보입니다.
+  // 닫은 뒤에는 '맞춤 리포트 받기' 버튼으로 다시 열 수 있습니다.
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
   useEffect(() => {
-    if (ready && !readClosed()) setReportOpen(true);
-  }, [ready]);
+    if (!readClosed()) setReportOpen(true);
+  }, []);
   function openReport() {
     writeClosed(false);
     setReportOpen(true);
@@ -61,67 +83,64 @@ export default function FinancialMap() {
 
   function restart() {
     writeClosed(false);
-    update(createFlow());
-    router.push('/start');
+    writeDone({});
+    clearAll();
+    router.push('/goal');
   }
 
   return (
     <>
       <SiteHeader>
         <div className="site-header__actions">
-          <Link href="/questions" className="site-header__link">
+          <Link href="/goal" className="site-header__link">
             답변 고치기
           </Link>
-          {ready && (
-            <button type="button" ref={reportButtonRef} className="btn btn--primary btn--sm" onClick={openReport}>
-              내 리포트 보기
-            </button>
-          )}
+          <button type="button" ref={reportButtonRef} className="btn btn--primary btn--sm" onClick={openReport}>
+            맞춤 리포트 받기
+          </button>
         </div>
       </SiteHeader>
-      {ready && <ReportDialog open={reportOpen} report={report} edited={reportEdited} onClose={closeReport} />}
+      <ReportDialog open={reportOpen} plan={plan} demo={demo} onClose={closeReport} />
       <main className="map-page">
         <StepProgress current={2} />
-        {roadmap && !redirect && (
-          <>
-            <MapIntro roadmap={roadmap} done={flow.done} />
-            {roadmap.steps.length ? (
-              <MapBoard
-                roadmap={roadmap}
-                done={flow.done}
-                onToggleDone={id =>
-                  update(current => ({ ...current, done: { ...current.done, [id]: !current.done[id] } }))
-                }
-              />
-            ) : (
-              <p className="card empty-map">
-                아직 정해진 계획이 없어서 지도에 담을 단계가 없어요. 계획이 정해지면 답변을 고쳐 주세요.
-              </p>
-            )}
-            <div className="map-footer">
-              <PrivacyNote persistent={persistent} />
-              <button type="button" className="btn btn--ghost" onClick={restart}>
-                처음부터 다시 하기
-              </button>
-            </div>
-          </>
+        <MapIntro roadmap={roadmap} done={done} demo={demo} />
+        <MoneyOrder plan={plan} />
+        {roadmap.steps.length ? (
+          <MapBoard roadmap={roadmap} done={done} onToggleDone={toggleDone} />
+        ) : (
+          <p className="card empty-map">지도에 담을 단계가 없어요. 입력 화면에서 목적을 골라 주세요.</p>
         )}
+        <div className="map-report-cta">
+          <p>지도를 따라가기 전에, 내 숫자를 한 장으로 정리한 리포트를 먼저 볼 수 있어요.</p>
+          <button type="button" className="btn btn--primary btn--md" onClick={openReport}>
+            맞춤 리포트 받기
+          </button>
+        </div>
+        <div className="map-footer">
+          <PrivacyNote persistent={persistent} />
+          <button type="button" className="btn btn--ghost" onClick={restart}>
+            처음부터 다시 하기
+          </button>
+        </div>
       </main>
     </>
   );
 }
 
-function MapIntro({ roadmap, done }) {
+function MapIntro({ roadmap, done, demo }) {
   const doneCount = roadmap.steps.filter(step => done[step.id]).length;
   return (
     <div className="map-intro">
       <div className="flow-heading">
         <h1>나의 금융 지도</h1>
-        <p>번호 순서대로 따라가 보세요. 단계를 누르면 설명이 열려요.</p>
+        <p>
+          돈은 아래 ‘돈의 순서’대로 나누고, 행동은 번호 순서대로 따라가 보세요. 단계를 누르면 내 숫자로 환산한 설명이
+          열려요.
+        </p>
       </div>
-      {roadmap.deferred.length > 0 && (
+      {demo && (
         <p className="info-note">
-          보류한 계획: {roadmap.deferred.join(', ')}. 정해지면 ‘답변 고치기’에서 상태를 바꿔 지도에 넣을 수 있어요.
+          지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">내 돈 상황을 입력</Link>하면 내 숫자로 바뀌어요.
         </p>
       )}
       <div className="map-legend">
@@ -230,7 +249,7 @@ function MapBoard({ roadmap, done, onToggleDone }) {
                     >
                       <span className="map-card__text">
                         <span>{step.title}</span>
-                        {step.personal.length > 0 && <span className="map-card__badge">내 답변 반영</span>}
+                        {step.figure && <span className="map-card__badge">{step.figure}</span>}
                       </span>
                     </button>
                     <i className="map__link" aria-hidden="true" />
@@ -287,7 +306,7 @@ function MapBoard({ roadmap, done, onToggleDone }) {
           {selected.note && <p className="info-note">{selected.note}</p>}
           {selected.personal.length > 0 && (
             <div className="map-pop__personal">
-              <h3>내 답변 기준</h3>
+              <h3>내 숫자 기준</h3>
               <ul>
                 {selected.personal.map(line => (
                   <li key={line}>{line}</li>
@@ -311,7 +330,29 @@ function MapBoard({ roadmap, done, onToggleDone }) {
             <h3>다음 단계</h3>
             <p>{selected.next}</p>
           </div>
-          <p className="map-pop__source">출처: [공식 기관 자료 연결 예정]</p>
+          {selected.policies.length > 0 && (
+            <div className="map-pop__block">
+              <h3>관련 정책·제도</h3>
+              <ul className="map-pop__policies">
+                {selected.policies.map(policy => (
+                  <li key={policy.id}>
+                    <strong>{policy.name}</strong>
+                    <span>{policy.summary}</span>
+                    <span className="map-pop__policy-note">{policy.condition_note}</span>
+                    <a href={policy.url} target="_blank" rel="noreferrer">
+                      공식 안내 보기
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <p className="map-pop__source">
+                확인 기준일 {policyData.checked_at} · 세부 조건은 공식 안내에서 확인하세요.
+              </p>
+            </div>
+          )}
+          {selected.policies.length === 0 && (
+            <p className="map-pop__source">출처: 입력한 숫자와 일반적인 기준으로 계산했어요.</p>
+          )}
           <Disclaimer />
           <button
             type="button"
