@@ -1,0 +1,213 @@
+{
+  "checked_at": "2026-10-03",
+  "note": "손으로 정리한 시연용 목록입니다(공식 안내·보도자료 기준). 세부 조건과 신청 시기는 바뀔 수 있으니 url의 공식 안내에서 확인하세요.",
+  "policies": [
+    {
+      "id": "molit-youth-rent",
+      "name": "청년월세 지원 (국토교통부)",
+      "summary": "무주택 청년의 월세를 월 최대 20만 원, 최대 24개월까지 지원해요.",
+      "purposes": ["주거"],
+      "housing_types": ["월세"],
+      "step": "housing_budget",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 34
+      },
+      "condition_note": "청년가구·원가구 소득과 재산 기준이 있어요. 신청 시기와 세부 조건은 복지로·마이홈에서 확인하세요.",
+      "url": "https://www.bokjiro.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "nhuf-youth-jeonse",
+      "name": "청년전용 버팀목전세자금 (주택도시기금)",
+      "summary": "무주택 청년에게 낮은 금리로 전세보증금을 빌려줘요.",
+      "purposes": ["주거"],
+      "housing_types": ["전세"],
+      "step": "housing_deposit",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 34
+      },
+      "condition_note": "연소득, 순자산, 보증금 기준이 있어요. 한도와 금리는 주택도시기금에서 확인하세요.",
+      "url": "https://nhuf.molit.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "fsc-youth-future-saving",
+      "name": "청년미래적금 (금융위원회)",
+      "summary": "3년 동안 적금을 넣으면 정부 기여금을 더해줘요.",
+      "purposes": ["비상자금", "주거", "결혼"],
+      "step": "saving_method",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 34
+      },
+      "condition_note": "개인소득·가구소득 기준이 있고 가입 신청 기간이 정해져 있어요. 다음 모집 일정은 금융위원회와 취급 은행에서 확인하세요.",
+      "url": "https://www.fsc.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "seoul-youth-rent",
+      "name": "서울시 청년월세지원",
+      "summary": "서울에 월세로 사는 무주택 청년에게 월세를 지원해요.",
+      "purposes": ["주거"],
+      "housing_types": ["월세"],
+      "step": "housing_budget",
+      "region": {
+        "sido": "서울",
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 39
+      },
+      "condition_note": "보증금·월세·소득 구간별로 추첨해요. 2026년 모집은 5월에 진행됐어요. 다음 모집은 서울주거포털에서 확인하세요.",
+      "url": "https://housing.seoul.go.kr/site/main/content/sh01_060513",
+      "source": "manual"
+    },
+    {
+      "id": "seoul-deposit-interest",
+      "name": "서울시 청년 임차보증금 이자지원",
+      "summary": "서울 청년의 임차보증금 대출 이자 일부를 서울시가 지원해요.",
+      "purposes": ["주거"],
+      "housing_types": ["전세", "월세"],
+      "step": "housing_deposit",
+      "region": {
+        "sido": "서울",
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 39
+      },
+      "condition_note": "연소득 기준(2026.6.5부터 미혼 5천만 원 이하)이 있고 생애 1회만 지원돼요. 자세한 조건은 서울주거포털에서 확인하세요.",
+      "url": "https://housing.seoul.go.kr/site/main/content/sh01_040901",
+      "source": "manual"
+    },
+    {
+      "id": "seoul-moving-cost",
+      "name": "서울시 청년 부동산 중개보수·이사비 지원",
+      "summary": "서울로 이사한 청년에게 중개보수와 이사비를 합쳐 최대 40만 원까지 실비로 돌려줘요.",
+      "purposes": ["주거"],
+      "housing_types": ["월세", "전세"],
+      "step": "move_in_cost",
+      "region": {
+        "sido": "서울",
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 39
+      },
+      "condition_note": "가구 기준 중위소득 150% 이하, 거래금액 2억 원 이하 전·월세, 생애 1회예요. 상반기·하반기에 나눠 모집해요(2026년은 4월, 8월).",
+      "url": "https://youth.seoul.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "nhuf-youth-wolse-loan",
+      "name": "청년전용 보증부월세대출 (주택도시기금)",
+      "summary": "보증금이 있는 월세 집을 구할 때 보증금과 월세를 낮은 금리로 빌려줘요.",
+      "purposes": ["주거"],
+      "housing_types": ["월세"],
+      "step": "housing_deposit",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 34
+      },
+      "condition_note": "무주택 단독세대주, 연소득·순자산 기준과 보증금·월세 상한이 있어요. 한도와 금리는 주택도시기금에서 확인하세요.",
+      "url": "https://nhuf.molit.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "youth-housing-dream-account",
+      "name": "청년 주택드림 청약통장",
+      "summary": "무주택 청년이 내 집 마련 자금을 모으는 청약통장이에요. 일반 청약통장보다 금리가 높고 비과세 혜택이 있어요.",
+      "purposes": ["주거"],
+      "step": "saving_method",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 34
+      },
+      "condition_note": "무주택, 연소득 5,000만 원 이하 등 기준이 있어요. 금리와 세제 혜택 조건은 취급 은행에서 확인하세요.",
+      "url": "https://www.molit.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "molit-return-guarantee-fee",
+      "name": "전세보증금반환보증 보증료 지원",
+      "summary": "보증금을 돌려받지 못할 때를 대비한 반환보증에 가입하면 낸 보증료를 돌려줘요.",
+      "purposes": ["주거"],
+      "housing_types": ["전세", "월세"],
+      "step": "contract_check",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 39
+      },
+      "condition_note": "임차보증금 3억 원 이하, 청년 연소득 5,000만 원 이하예요. 환급 한도와 청년 나이 기준은 지자체마다 달라요. 보증금 있는 월세도 가입되는지 보증기관에서 확인하세요.",
+      "url": "https://www.gov.kr",
+      "source": "manual"
+    },
+    {
+      "id": "youth-purchase-rental",
+      "name": "청년 매입임대주택 (LH·SH)",
+      "summary": "공사가 사들인 집을 시세의 40~50% 수준으로 청년에게 빌려줘요.",
+      "purposes": ["주거"],
+      "housing_types": ["월세", "전세"],
+      "step": "housing_search",
+      "region": {
+        "sido": null,
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 39
+      },
+      "condition_note": "소득·자산 기준과 모집 공고 일정이 있어요. 마이홈포털이나 LH·SH 공고에서 확인하세요.",
+      "url": "https://www.myhome.go.kr",
+      "source": "manual"
+    },
+    {
+      "id": "seoul-youth-safe-housing",
+      "name": "서울시 청년안심주택",
+      "summary": "서울 역세권 등에 청년이 시세보다 낮은 임대료로 살 수 있는 임대주택이에요.",
+      "purposes": ["주거"],
+      "housing_types": ["월세", "전세"],
+      "step": "housing_search",
+      "region": {
+        "sido": "서울",
+        "sigungu": null
+      },
+      "age": {
+        "min": 19,
+        "max": 39
+      },
+      "condition_note": "소득·자산 기준과 단지별 모집 공고가 있어요. 서울주거포털에서 모집 일정을 확인하세요.",
+      "url": "https://housing.seoul.go.kr",
+      "source": "manual"
+    }
+  ]
+}

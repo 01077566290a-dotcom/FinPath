@@ -2165,3 +2165,140 @@ select:focus-visible,
     display: none;
   }
 }
+
+/* ── v4 입력 화면 (components/goal) ── */
+.goal-group {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.goal-fields {
+  display: grid;
+  gap: 16px;
+}
+.goal-field {
+  display: grid;
+  gap: 6px;
+}
+.goal-field__label {
+  font-size: 14px;
+  color: var(--muted);
+}
+.goal-field__box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.goal-field__box:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.goal-field__box input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  outline: 0;
+  font-size: 18px;
+  background: transparent;
+}
+.goal-field__unit {
+  color: var(--muted);
+  white-space: nowrap;
+}
+.goal-field select {
+  max-width: 320px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  background: var(--surface);
+}
+.goal-cut {
+  display: grid;
+  gap: 8px;
+}
+.goal-nav-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.goal-error {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.goal-summary {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 8px 20px;
+}
+.goal-summary__row {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.goal-summary__row:last-child {
+  border-bottom: 0;
+}
+.goal-summary dt {
+  font-size: 14px;
+  color: var(--muted);
+}
+.goal-summary dd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-weight: 600;
+}
+.goal-edit {
+  padding: 4px 10px;
+  font-size: 14px;
+}
+.goal-subtitle {
+  margin: 32px 0 12px;
+  font-size: 20px;
+}
+.goal-policies {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.goal-policy {
+  display: grid;
+  gap: 6px;
+  padding: 16px 20px;
+}
+.goal-policy p {
+  margin: 0;
+}
+.goal-policy__note {
+  font-size: 14px;
+  color: var(--muted);
+}
+.goal-policy a {
+  color: var(--focus);
+  font-weight: 600;
+}
+.goal-fields--grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.goal-fields--row {
+  grid-template-columns: repeat(2, minmax(0, 160px));
+}
+.goal-policy__source {
+  font-size: 12px;
+  color: var(--muted);
+}
