@@ -1,6 +1,7 @@
 'use client';
 import {
   COLOR,
+  niceScale,
   METRIC_ROW_COLOR,
   CompareBars,
   StackedBars,
@@ -10,17 +11,25 @@ import {
   MilestoneTimeline,
 } from './charts.js';
 import { SiteHeader } from '../flow/Chrome.js';
+import PlanSection from './PlanSection.js';
+import { usePlan } from './usePlan.js';
 
 const fmt = value => Math.round(value).toLocaleString();
-const EMPLOYMENT = { regular: '정규직', contract: '계약직', freelance: '프리랜서' };
-const PURPOSE = { housing: '주거', emergency: '비상자금', marriage: '결혼', invest: '투자', debt: '빚 상환' };
+const GOAL_COLOR = {
+  emergency: COLOR.emergency,
+  housing: COLOR.housing,
+  wedding: COLOR.initial,
+  debt: 'var(--c-muted-strong)',
+};
 const TONE_COLOR = {
   now: 'var(--c-muted-strong)',
   emergency: COLOR.emergency,
   missed: '#ffffff',
   saving: COLOR.saving,
   housing: COLOR.housing,
-  debt: COLOR.initial,
+  debt: 'var(--c-muted-strong)',
+  wedding: COLOR.initial,
+  invest: COLOR.base,
 };
 
 // 상태는 색만으로 전달하지 않고 아이콘 + 글자를 함께 씁니다.
@@ -130,48 +139,106 @@ function Legend({ items }) {
   );
 }
 
-// 리포트 본문 한 장. /report 페이지와 지도 화면의 팝업에서 함께 씁니다.
-export function ReportSheet({ report }) {
-  const {
-    input,
-    core,
-    targets,
-    cashflow,
-    savings,
-    fixes,
-    diagnosis,
-    allocation,
-    highlight,
-    metrics,
-    milestones,
-    basis,
-  } = report;
-  const { profile, housing, money } = input;
-  const emergencyRate = Math.min(100, Math.floor((money.saved / targets.emergency) * 100));
-  const future = core.collectable - money.saved;
+// 리포트 본문 한 장. /report 페이지와 지도 화면의 팝업에서 함께 씁니다. plan은 buildPlan(profile) 결과입니다.
+export function ReportSheet({ plan, demo = false }) {
+  const { core, cashflow, goals, profile, diagnosis, budget, savings, fixes, metrics, milestones, series } = plan;
+  const hasHousing = Boolean(plan.housing);
+  const emergency = goals.find(g => g.id === 'emergency');
+  const future = core.collectable === null ? null : core.collectable - profile.saved;
+  const placeName = plan.region.split(' ').at(-1);
 
   const compareRows = [
-    {
-      label: '내가 생각한 목표',
-      value: core.goal,
-      color: COLOR.muted,
-      note: `처음에 "${core.goalMonths}개월 동안 ${fmt(core.goal)}만 원"으로 입력했어요`,
-    },
+    ...(core.goal !== null
+      ? [
+          {
+            label: '내가 생각한 목표',
+            value: core.goal,
+            color: COLOR.muted,
+            note: `처음에 "${core.goalMonths}개월 동안 ${fmt(core.goal)}만 원"으로 입력했어요`,
+          },
+        ]
+      : []),
     {
       label: '실제로 필요한 돈',
       value: core.needed,
       color: COLOR.needed,
       strong: true,
-      note: '비상자금 + 보증금 + 이사·초기 비용',
+      note: goals
+        .filter(g => g.target > 0)
+        .map(g => g.label)
+        .join(' + '),
     },
-    {
-      label: `${core.deadline}까지 모을 돈`,
-      value: core.collectable,
-      color: COLOR.saving,
-      shortfallTo: core.needed,
-      note: `지금 모아둔 ${fmt(money.saved)} + 매달 ${cashflow.now.save} × ${core.deadlineMonths}개월`,
-    },
+    ...(core.collectable !== null
+      ? [
+          {
+            label: `${core.deadlineLabel}까지 모을 돈`,
+            value: core.collectable,
+            color: COLOR.saving,
+            shortfallTo: core.gap > 0 ? core.needed : undefined,
+            note: `지금 모아둔 ${fmt(profile.saved)} + 매달 ${cashflow.now.save} × ${core.deadline}개월`,
+          },
+        ]
+      : []),
   ];
+  const compareScale = niceScale(Math.max(...compareRows.map(row => row.value)));
+  const needParts = goals
+    .filter(g => g.target > 0)
+    .map(g => ({ label: g.label, short: g.label, value: g.target, color: GOAL_COLOR[g.id] || COLOR.base }));
+  const stackMax = Math.max(core.needed, core.collectable ?? 0);
+  const goalBasis = goals.flatMap(g => g.basis);
+
+  const savePart = value => ({
+    key: 'save',
+    label: '모으는 돈',
+    short: '저축',
+    value: Math.max(0, value),
+    color: COLOR.saving,
+    ink: '#0b0b0b',
+  });
+  const livingPart = value => ({ key: 'living', label: '생활비', short: '생활비', value, color: COLOR.base });
+  const cashRows = [
+    {
+      label: '지금',
+      save: cashflow.now.save,
+      parts: [livingPart(cashflow.now.spend), savePart(cashflow.now.save)],
+    },
+    ...(hasHousing
+      ? [
+          {
+            label: '독립 후',
+            save: cashflow.after.save,
+            parts: [
+              livingPart(cashflow.after.spend - cashflow.housingCost),
+              {
+                key: 'housing',
+                label: '월세 + 관리비',
+                short: '주거비',
+                value: cashflow.housingCost,
+                color: COLOR.housing,
+              },
+              savePart(cashflow.after.save),
+            ],
+          },
+        ]
+      : []),
+  ];
+
+  const hasFaster = budget.plan.monthly > profile.saveNow;
+  const speedSeries = [
+    { key: 'base', color: COLOR.base, label: `지금 속도 (매달 ${cashflow.now.save}만 원)`, short: '지금 속도' },
+    ...(hasFaster
+      ? [
+          {
+            key: 'saving',
+            color: COLOR.saving,
+            label: `권장 속도 (매달 ${budget.plan.monthly}만 원)`,
+            short: '권장 속도',
+          },
+        ]
+      : []),
+  ];
+  const mainHousing = plan.scenarios.A.done.housing;
+  const investMilestone = plan.scenarios.A.milestones.find(m => m.id === 'invest');
 
   return (
     <article className="rp-sheet" aria-labelledby="rp-title">
@@ -179,207 +246,197 @@ export function ReportSheet({ report }) {
         <div className="rp-head__title">
           <p className="rp-head__brand">FinPath</p>
           <h1 id="rp-title">돈 구성 리포트</h1>
-          <span className="rp-head__badge">시연 데이터</span>
+          {demo && <span className="rp-head__badge">시연 데이터</span>}
         </div>
         <dl className="rp-head__meta">
           <div>
-            <dt>이름</dt>
-            <dd>
-              {profile.name} ({profile.age}세)
-            </dd>
+            <dt>나이</dt>
+            <dd>{profile.age}세</dd>
           </div>
           <div>
-            <dt>직장</dt>
-            <dd>
-              {profile.tenure} · {EMPLOYMENT[profile.employment]}
-            </dd>
+            <dt>고용 형태</dt>
+            <dd>{profile.employment}</dd>
           </div>
           <div>
             <dt>월 실수령액</dt>
-            <dd>{fmt(money.income)}만 원</dd>
+            <dd>{fmt(profile.income)}만 원</dd>
           </div>
           <div>
             <dt>지역</dt>
-            <dd>{input.region}</dd>
+            <dd>{plan.region}</dd>
           </div>
           <div>
             <dt>목적</dt>
-            <dd>{input.purposes.map(key => PURPOSE[key]).join(' · ')}</dd>
+            <dd>{profile.purposes.join(' · ')}</dd>
           </div>
           <div>
             <dt>기준 시점</dt>
-            <dd>{report.asOfLabel}</dd>
+            <dd>{plan.asOfLabel}</dd>
           </div>
         </dl>
       </header>
 
-      <p className="rp-summary">{report.summary}</p>
+      <p className="rp-summary">{plan.summary}</p>
 
       <div className="rp-grid">
         <div className="rp-main">
           <Section number={1} title="목표 진단" sub="내가 생각한 목표 vs 실제로 필요한 돈">
             <p className="rp-lead">
-              생각한 목표는 <b>{fmt(core.goal)}만 원</b>이었지만, 실제로 필요한 돈은 <b>{fmt(core.needed)}만 원</b>
-              이에요. 독립 후 생활비 {input.emergency.months}개월치 비상자금 <b>{fmt(targets.emergency)}만 원</b>이 빠져
-              있었어요.
+              {core.goal !== null && (
+                <>
+                  생각한 목표는 <b>{fmt(core.goal)}만 원</b>이었지만,{' '}
+                </>
+              )}
+              실제로 필요한 돈은 <b>{fmt(core.needed)}만 원</b>이에요.
+              {emergency && (
+                <>
+                  {' '}
+                  {hasHousing ? '독립 후 ' : ''}생활비 {emergency.months}개월치 비상자금{' '}
+                  <b>{fmt(emergency.target)}만 원</b>도 포함돼요.
+                </>
+              )}
             </p>
             <CompareBars
               rows={compareRows}
-              max={2000}
-              ticks={[0, 500, 1000, 1500, 2000]}
-              ariaLabel={`생각한 목표 ${core.goal}만 원, 실제로 필요한 돈 ${core.needed}만 원, ${core.deadline}까지 모을 돈 ${core.collectable}만 원, 부족 ${core.gap}만 원`}
+              max={compareScale.max}
+              ticks={compareScale.ticks}
+              ariaLabel={compareRows.map(row => `${row.label} ${row.value}만 원`).join(', ')}
             />
             <div className="rp-more-row">
-              <Basis lines={basis.goal} />
+              <Basis lines={goalBasis} />
               <TableView
                 caption="목표 진단"
                 head={['구분', '금액(만 원)', '설명']}
                 rows={[
                   ...compareRows.map(row => [row.label, fmt(row.value), row.note]),
-                  ['부족한 돈', fmt(core.gap), '실제로 필요한 돈 − 모을 돈'],
+                  ...(core.gap > 0 ? [['부족한 돈', fmt(core.gap), '실제로 필요한 돈 − 모을 돈']] : []),
                 ]}
               />
             </div>
           </Section>
 
-          <Section number={2} title="돈 구성 분석" sub={`단위: 만 원 · ${core.deadline} 기준`}>
+          <Section
+            number={2}
+            title="돈 구성 분석"
+            sub={`단위: 만 원${core.deadlineLabel ? ` · ${core.deadlineLabel} 기준` : ''}`}
+          >
             <StackedBars
-              max={core.needed}
-              ariaLabel={`필요한 돈은 비상자금 ${targets.emergency}, 보증금 ${housing.deposit}, 이사·초기 비용 ${targets.initialCost}. 마련할 돈은 모아둔 돈 ${money.saved}, 앞으로 모을 돈 ${future}, 부족 ${core.gap}`}
+              max={stackMax}
+              ariaLabel={`필요한 돈은 ${needParts.map(part => `${part.label} ${part.value}`).join(', ')}.${
+                future === null
+                  ? ''
+                  : ` 마련할 돈은 모아둔 돈 ${profile.saved}, 앞으로 모을 돈 ${future}, 부족 ${Math.max(0, core.gap)}`
+              }`}
               rows={[
-                {
-                  label: '필요한 돈',
-                  parts: [
-                    { label: '비상자금', short: '비상자금', value: targets.emergency, color: COLOR.emergency },
-                    { label: '보증금', short: '보증금', value: housing.deposit, color: COLOR.housing },
-                    {
-                      label: '이사·초기 비용',
-                      short: '초기 비용',
-                      value: targets.initialCost,
-                      color: COLOR.initial,
-                    },
-                  ],
-                },
-                {
-                  label: '마련할 돈',
-                  track: core.needed,
-                  trackLabel: `부족 ${fmt(core.gap)}`,
-                  trackShort: fmt(core.gap),
-                  parts: [
-                    { label: '지금 모아둔 돈', short: '모아둔 돈', value: money.saved, color: COLOR.saved },
-                    {
-                      label: `앞으로 ${core.deadlineMonths}개월 모을 돈`,
-                      short: '앞으로',
-                      value: future,
-                      color: COLOR.saving,
-                      ink: '#0b0b0b',
-                    },
-                  ],
-                },
+                { label: '필요한 돈', parts: needParts },
+                ...(future === null
+                  ? []
+                  : [
+                      {
+                        label: '마련할 돈',
+                        ...(core.gap > 0
+                          ? { track: core.needed, trackLabel: `부족 ${fmt(core.gap)}`, trackShort: fmt(core.gap) }
+                          : {}),
+                        parts: [
+                          { label: '지금 모아둔 돈', short: '모아둔 돈', value: profile.saved, color: COLOR.saved },
+                          {
+                            label: `앞으로 ${core.deadline}개월 모을 돈`,
+                            short: '앞으로',
+                            value: future,
+                            color: COLOR.saving,
+                            ink: '#0b0b0b',
+                          },
+                        ],
+                      },
+                    ]),
               ]}
             />
             <div className="rp-legend-grid">
               <span className="rp-legend-grid__label">필요한 돈</span>
               <Legend
-                items={[
-                  { label: `비상자금 ${fmt(targets.emergency)}`, color: COLOR.emergency },
-                  { label: `보증금 ${fmt(housing.deposit)}`, color: COLOR.housing },
-                  { label: `이사·초기 비용 ${fmt(targets.initialCost)}`, color: COLOR.initial },
-                ]}
+                items={needParts.map(part => ({ label: `${part.label} ${fmt(part.value)}`, color: part.color }))}
               />
-              <span className="rp-legend-grid__label">마련할 돈</span>
-              <Legend
-                items={[
-                  { label: `지금 모아둔 돈 ${fmt(money.saved)}`, color: COLOR.saved },
-                  { label: `앞으로 ${core.deadlineMonths}개월 모을 돈 ${fmt(future)}`, color: COLOR.saving },
-                  { label: `부족 ${fmt(core.gap)}`, track: true },
-                ]}
-              />
+              {future !== null && (
+                <>
+                  <span className="rp-legend-grid__label">마련할 돈</span>
+                  <Legend
+                    items={[
+                      { label: `지금 모아둔 돈 ${fmt(profile.saved)}`, color: COLOR.saved },
+                      { label: `앞으로 ${core.deadline}개월 모을 돈 ${fmt(future)}`, color: COLOR.saving },
+                      ...(core.gap > 0 ? [{ label: `부족 ${fmt(core.gap)}`, track: true }] : []),
+                    ]}
+                  />
+                </>
+              )}
             </div>
           </Section>
 
           <Section number={3} title="월 현금흐름" sub="월급이 어디로 가는지 · 단위: 만 원">
             <CashflowBars
               income={cashflow.income}
-              ariaLabel={`지금은 쓰는 돈 ${cashflow.now.spend}, 모으는 돈 ${cashflow.now.save}. 독립 후에는 생활비 ${cashflow.parts.after.living}, 주거비 ${cashflow.parts.after.housing}, 모으는 돈 ${cashflow.after.save}`}
-              rows={[
-                {
-                  label: '지금',
-                  save: cashflow.now.save,
-                  parts: [
-                    {
-                      key: 'living',
-                      label: '생활비',
-                      short: '생활비',
-                      value: cashflow.parts.now.living,
-                      color: COLOR.base,
-                    },
-                    {
-                      key: 'save',
-                      label: '모으는 돈',
-                      short: '저축',
-                      value: cashflow.parts.now.save,
-                      color: COLOR.saving,
-                      ink: '#0b0b0b',
-                    },
-                  ],
-                },
-                {
-                  label: '독립 후',
-                  save: cashflow.after.save,
-                  parts: [
-                    {
-                      key: 'living',
-                      label: '생활비',
-                      short: '생활비',
-                      value: cashflow.parts.after.living,
-                      color: COLOR.base,
-                    },
-                    {
-                      key: 'housing',
-                      label: '월세 + 관리비',
-                      short: '주거비',
-                      value: cashflow.parts.after.housing,
-                      color: COLOR.housing,
-                    },
-                    {
-                      key: 'save',
-                      label: '모으는 돈',
-                      short: '저축',
-                      value: cashflow.parts.after.save,
-                      color: COLOR.saving,
-                      ink: '#0b0b0b',
-                    },
-                  ],
-                },
-              ]}
+              ariaLabel={`지금은 쓰는 돈 ${cashflow.now.spend}, 모으는 돈 ${cashflow.now.save}.${
+                hasHousing
+                  ? ` 독립 후에는 생활비 ${cashflow.after.spend - cashflow.housingCost}, 주거비 ${cashflow.housingCost}, 모으는 돈 ${cashflow.after.save}`
+                  : ''
+              }`}
+              rows={cashRows}
             />
             <Legend
               items={[
                 { label: '생활비 (고정지출 + 변동 생활비)', color: COLOR.base },
-                { label: '주거비 (월세 + 관리비)', color: COLOR.housing },
+                ...(hasHousing ? [{ label: '주거비 (월세 + 관리비)', color: COLOR.housing }] : []),
                 { label: '모으는 돈', color: COLOR.saving },
               ]}
             />
             <p className="rp-callout">
-              독립하면 매달 나가는 돈이 <b>{diagnosis.spendIncrease}만 원</b> 늘어, 모으는 돈이{' '}
-              <b>
-                {cashflow.now.save}만 원 → {cashflow.after.save}만 원
-              </b>
-              으로 줄어요. 그래서 비상자금을 <b>독립 전에</b> 먼저 채워요.
+              {hasHousing ? (
+                <>
+                  독립하면 매달 나가는 돈이 <b>{diagnosis.spendIncrease}만 원</b> 늘어, 모으는 돈이{' '}
+                  <b>
+                    {cashflow.now.save}만 원 → {cashflow.after.save}만 원
+                  </b>
+                  으로 줄어요.
+                  {emergency && (
+                    <>
+                      {' '}
+                      그래서 비상자금을 <b>독립 전에</b> 채우는 순서가 중요해요.
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  매달 <b>{cashflow.now.save}만 원</b>을 모으고 있어요. 월급의 <b>{cashflow.now.rate}%</b>예요.
+                </>
+              )}
             </p>
             <div className="rp-more-row">
-              <Basis lines={basis.cashflow} />
+              <Basis
+                lines={[
+                  `지금 쓰는 돈 = 월급 ${fmt(cashflow.income)} − 모으는 돈 ${cashflow.now.save} = ${fmt(cashflow.now.spend)}만 원`,
+                  ...(hasHousing
+                    ? [
+                        `독립 후 쓰는 돈 = 지금 쓰는 돈 ${cashflow.now.spend} − 교통비 변화 + 월세·관리비 ${cashflow.housingCost} = ${cashflow.after.spend}만 원`,
+                      ]
+                    : []),
+                ]}
+              />
               <TableView
                 caption="월 현금흐름"
-                head={['항목', '지금', '독립 후']}
-                rows={[
-                  ['실수령액', money.income, money.income],
-                  ...money.fixed.map(item => [item.label, item.now, item.after]),
-                  ['월세 + 관리비', 0, cashflow.housingCost],
-                  ['변동 생활비', money.variable.now, money.variable.after],
-                  ['모으는 돈', cashflow.now.save, cashflow.after.save],
-                ]}
+                head={hasHousing ? ['항목', '지금', '독립 후'] : ['항목', '금액']}
+                rows={
+                  hasHousing
+                    ? [
+                        ['실수령액', cashflow.income, cashflow.income],
+                        ['생활비(주거비 제외)', cashflow.now.spend, cashflow.after.spend - cashflow.housingCost],
+                        ['월세 + 관리비', 0, cashflow.housingCost],
+                        ['모으는 돈', cashflow.now.save, cashflow.after.save],
+                      ]
+                    : [
+                        ['실수령액', cashflow.income],
+                        ['생활비', cashflow.now.spend],
+                        ['모으는 돈', cashflow.now.save],
+                      ]
+                }
               />
             </div>
           </Section>
@@ -389,7 +446,7 @@ export function ReportSheet({ report }) {
               <Legend
                 items={[
                   { label: '지금', color: METRIC_ROW_COLOR.now },
-                  { label: '독립 후', color: METRIC_ROW_COLOR.after },
+                  ...(hasHousing ? [{ label: '독립 후', color: METRIC_ROW_COLOR.after }] : []),
                 ]}
               />
               <span>
@@ -426,11 +483,7 @@ export function ReportSheet({ report }) {
                         {!metric.band.source && <em className="rp-draft">기준 확인 중</em>}
                       </span>
                     )}
-                    {metric.marker && <span className="metric__note">{metric.note}</span>}
-                    {!metric.marker && !metric.band && metric.note && (
-                      <span className="metric__note">{metric.note}</span>
-                    )}
-                    {metric.band && metric.note && <span className="metric__note">{metric.note}</span>}
+                    {metric.note && <span className="metric__note">{metric.note}</span>}
                     <StatusChip tone={metric.status.tone} text={metric.status.text} />
                   </div>
                 </li>
@@ -438,40 +491,48 @@ export function ReportSheet({ report }) {
             </ul>
           </Section>
 
-          <Section number={5} title="모으는 속도" sub="독립 전 저축 속도 기준 · 선이 필요한 돈에 닿으면 독립">
+          <Section
+            number={5}
+            title="모으는 속도"
+            sub={`저축 속도 기준 · 선이 필요한 돈에 닿으면 ${hasHousing ? '독립' : '목표 달성'}`}
+          >
             <SavingsLines
-              data={report.series}
+              data={series}
               target={core.needed}
-              deadline={{ month: core.deadlineMonths, label: `원래 계획 ${core.deadline}` }}
-              ariaLabel={`지금 계획이면 ${core.monthsNeeded}개월 뒤, 매달 ${highlight.totalCut}만 원 절약하면 ${highlight.months}개월 뒤 필요한 돈 ${core.needed}만 원에 닿아요`}
-              series={[
-                {
-                  key: 'base',
-                  color: COLOR.base,
-                  label: `지금 계획 (매달 ${cashflow.now.save}만 원)`,
-                  short: '지금 계획',
-                },
-                {
-                  key: 'saving',
-                  color: COLOR.saving,
-                  label: `구독·통신비 ${highlight.totalCut}만 원 절약 (매달 ${cashflow.now.save + highlight.totalCut}만 원)`,
-                  short: '절약 시',
-                },
-              ]}
+              deadline={
+                core.deadline === null
+                  ? null
+                  : { month: Math.min(core.deadline, series.at(-1).month), label: `원래 계획 ${core.deadlineLabel}` }
+              }
+              ariaLabel={`지금 속도면 ${core.monthsNeeded ?? '아주 오랜'}개월 뒤${
+                hasFaster ? `, 매달 ${budget.plan.monthly}만 원 모으면 더 빨리` : ''
+              } 필요한 돈 ${core.needed}만 원에 닿아요`}
+              series={speedSeries}
             />
             <div className="rp-more-row">
-              <Basis lines={basis.speed} />
+              <Basis
+                lines={[
+                  `필요한 돈까지 남은 금액 = ${fmt(core.needed)} − ${fmt(profile.saved)} = ${fmt(core.needed - profile.saved)}만 원`,
+                  `지금 속도: ${fmt(core.needed - profile.saved)} ÷ 매달 ${cashflow.now.save}만 원`,
+                  ...(hasFaster
+                    ? [`권장 속도: ${fmt(core.needed - profile.saved)} ÷ 매달 ${budget.plan.monthly}만 원`]
+                    : []),
+                  ...(hasHousing
+                    ? ['독립하면 매달 모으는 돈이 줄어서, 그래프는 필요한 돈을 다 모으는 달까지만 그렸어요.']
+                    : []),
+                ]}
+              />
               <TableView
                 caption="모으는 속도"
-                head={['시점', '지금 계획(만 원)', '절약 시(만 원)']}
-                rows={report.series
-                  .filter(d => d.month % 3 === 0 || d.month === core.monthsNeeded || d.month === highlight.months)
+                head={['시점', '지금 속도(만 원)', '권장 속도(만 원)']}
+                rows={series
+                  .filter(d => d.month % 3 === 0 || d.month === series.at(-1).month)
                   .map(d => [d.label, fmt(d.base), fmt(d.saving)])}
               />
             </div>
           </Section>
 
-          <Section number={6} title="앞으로의 일정" sub="비상자금을 먼저 채운 뒤 주거 자금을 모으는 순서">
+          <Section number={6} title="앞으로의 일정" sub="지금 저축 속도와 규칙 A(비상자금 먼저) 기준">
             <MilestoneTimeline
               items={milestones}
               toneColor={TONE_COLOR}
@@ -493,99 +554,181 @@ export function ReportSheet({ report }) {
               ))}
             </ol>
           </Section>
+
+          <Section
+            number={7}
+            title="내 숫자로 맞춘 계획"
+            sub="월급 대비 저축률 · 생활비 상한 · 비상자금 배분 규칙 비교"
+          >
+            <PlanSection plan={plan} demo={demo} />
+          </Section>
         </div>
 
         <aside className="rp-side">
           {/* 좁은 화면에서는 이 묶음을 요약 바로 아래로 올립니다 (globals.css .rp-side__top) */}
           <div className="rp-side__top">
-            <section className="rp-score" aria-labelledby="score-title">
-              <h2 id="score-title">준비도</h2>
-              <p className="rp-score__value">
-                {core.readiness}
-                <span>%</span>
-              </p>
-              <div className="meter meter--dark" aria-hidden="true">
-                <span style={{ width: `${core.readiness}%` }} />
-              </div>
-              <p className="rp-score__text">
-                {core.deadline}까지 필요한 돈의 <b>{core.readiness}%</b>를 모을 수 있어요. <b>{fmt(core.gap)}만 원</b>이
-                부족해요.
-              </p>
-              <p className="rp-score__help">준비도 = 목표 시점까지 모을 돈 ÷ 실제로 필요한 돈</p>
-            </section>
+            {core.readiness !== null && (
+              <section className="rp-score" aria-labelledby="score-title">
+                <h2 id="score-title">준비도</h2>
+                <p className="rp-score__value">
+                  {Math.min(core.readiness, 999)}
+                  <span>%</span>
+                </p>
+                <div className="meter meter--dark" aria-hidden="true">
+                  <span style={{ width: `${Math.min(100, core.readiness)}%` }} />
+                </div>
+                <p className="rp-score__text">
+                  {core.deadlineLabel}까지 필요한 돈의 <b>{core.readiness}%</b>를 모을 수 있어요.{' '}
+                  {core.gap > 0 ? (
+                    <>
+                      <b>{fmt(core.gap)}만 원</b>이 부족해요.
+                    </>
+                  ) : (
+                    '부족하지 않아요.'
+                  )}
+                </p>
+                <p className="rp-score__help">준비도 = 목표 시점까지 모을 돈 ÷ 실제로 필요한 돈</p>
+              </section>
+            )}
 
-            <section className="rp-card rp-card--accent">
-              <h3>{input.region.split(' ').at(-1)} 월세 독립까지</h3>
-              <p className="rp-big">
-                {core.monthsNeeded}
-                <span>개월</span>
-              </p>
-              <p className="rp-muted">
-                {core.doneLabel} 예정 · 원래 계획({core.deadline})보다 <b>{core.delay}개월</b> 늦어요
-              </p>
-            </section>
+            {hasHousing && mainHousing !== null && (
+              <section className="rp-card rp-card--accent">
+                <h3>
+                  {placeName} {plan.housing.type} 독립까지
+                </h3>
+                <p className="rp-big">
+                  {mainHousing}
+                  <span>개월</span>
+                </p>
+                <p className="rp-muted">
+                  {plan.scenarios.A.doneLabels.housing} 예정
+                  {core.deadline !== null && mainHousing > core.deadline && (
+                    <>
+                      {' '}
+                      · 원래 계획({core.deadlineLabel})보다 <b>{mainHousing - core.deadline}개월</b> 늦어요
+                    </>
+                  )}
+                </p>
+              </section>
+            )}
           </div>
 
           <div className="rp-side__rest">
             <section className="rp-card">
-              <h3>부족분 해결 방법</h3>
-              <ol className="fixes">
-                {fixes.map(fix => (
-                  <li key={fix.kind}>
-                    <span className="fixes__kind">{fix.title}</span>
-                    <strong>{fix.headline}</strong>
-                    <span className="rp-muted">{fix.detail}</span>
-                  </li>
-                ))}
-              </ol>
-            </section>
-
-            <section className="rp-card">
-              <h3>아낄 수 있는 것</h3>
-              <p className="rp-muted">위에서부터 차례로 줄였을 때 독립이 앞당겨지는 정도예요.</p>
+              <h3>목적별 계획</h3>
               <ul className="cuts">
-                {savings.map(row => (
-                  <li key={row.label}>
+                {goals.map(goal => (
+                  <li key={goal.id}>
                     <div className="cuts__text">
-                      <strong>{row.label}</strong>
+                      <strong>{goal.label}</strong>
                       <span className="rp-muted">
-                        매달 −{row.cut}만 원 (누적 {row.totalCut}만 원) · {row.doneLabel} 독립
-                      </span>
-                      <span className="cuts__bar" aria-hidden="true">
-                        <span style={{ width: `${(row.sooner / core.monthsNeeded) * 100}%` }} />
+                        {goal.id === 'invest'
+                          ? `매달 최대 ${fmt(goal.monthlyCap)}만 원 · ${
+                              investMilestone ? `${investMilestone.label}부터` : '남는 돈이 생기면 시작'
+                            }`
+                          : `${fmt(goal.target)}만 원 · ${
+                              plan.scenarios.A.doneLabels[goal.id]
+                                ? `${plan.scenarios.A.doneLabels[goal.id]} 완성`
+                                : '지금 속도로는 어려워요'
+                            }`}
                       </span>
                     </div>
-                    <span className="cuts__gain">
-                      <b>{row.sooner}개월</b> 빨라져요
-                    </span>
                   </li>
                 ))}
               </ul>
             </section>
 
             <section className="rp-card">
-              <h3>비상자금</h3>
-              <p className="rp-mid">
-                {fmt(money.saved)} <span>/ {fmt(targets.emergency)}만 원</span>
-              </p>
-              <div className="meter meter--emergency" aria-hidden="true">
-                <span style={{ width: `${emergencyRate}%` }} />
-              </div>
-              <p className="rp-muted">
-                목표의 {emergencyRate}% · 독립 후 생활비로 <b>{diagnosis.surviveAfter}개월</b> 버틸 수 있어요.{' '}
-                {allocation.emergencyDoneLabel}에 목표를 채워요.
-              </p>
+              <h3>부족분 해결 방법</h3>
+              {fixes.length ? (
+                <ol className="fixes">
+                  {fixes.map(fix => (
+                    <li key={fix.kind}>
+                      <span className="fixes__kind">{fix.title}</span>
+                      <strong>{fix.headline}</strong>
+                      <span className="rp-muted">{fix.detail}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="rp-muted">지금 속도로 기한 안에 필요한 돈을 모을 수 있어요.</p>
+              )}
             </section>
+
+            {savings.length > 0 && (
+              <section className="rp-card">
+                <h3>아낄 수 있는 것</h3>
+                <p className="rp-muted">위에서부터 차례로 줄였을 때 목표가 앞당겨지는 정도예요.</p>
+                <ul className="cuts">
+                  {savings.map(row => (
+                    <li key={row.item}>
+                      <div className="cuts__text">
+                        <strong>{row.item}</strong>
+                        <span className="rp-muted">
+                          매달 −{row.cut}만 원 (누적 {row.totalCut}만 원)
+                          {row.doneLabel ? ` · ${row.doneLabel} 완성` : ''}
+                        </span>
+                        <span className="cuts__bar" aria-hidden="true">
+                          <span
+                            style={{
+                              width: `${core.monthsNeeded ? Math.min(100, ((row.sooner ?? 0) / core.monthsNeeded) * 100) : 0}%`,
+                            }}
+                          />
+                        </span>
+                      </div>
+                      <span className="cuts__gain">
+                        {row.sooner > 0 ? (
+                          <>
+                            <b>{row.sooner}개월</b> 빨라져요
+                          </>
+                        ) : (
+                          '변화 없어요'
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {emergency && (
+              <section className="rp-card">
+                <h3>비상자금</h3>
+                <p className="rp-mid">
+                  {fmt(Math.min(profile.saved, emergency.target))} <span>/ {fmt(emergency.target)}만 원</span>
+                </p>
+                <div className="meter meter--emergency" aria-hidden="true">
+                  <span style={{ width: `${Math.min(100, Math.floor((profile.saved / emergency.target) * 100))}%` }} />
+                </div>
+                <p className="rp-muted">
+                  목표의 {Math.min(100, Math.floor((profile.saved / emergency.target) * 100))}%
+                  {diagnosis.surviveAfter !== null && (
+                    <>
+                      {' '}
+                      · {hasHousing ? '독립 후 ' : ''}생활비로{' '}
+                      <b>{hasHousing ? diagnosis.surviveAfter : diagnosis.surviveNow}개월</b> 버틸 수 있어요.
+                    </>
+                  )}{' '}
+                  {plan.scenarios.A.doneLabels.emergency && `${plan.scenarios.A.doneLabels.emergency}에 목표를 채워요.`}
+                </p>
+              </section>
+            )}
 
             {diagnosis.debt && (
               <section className="rp-card">
-                <h3>{diagnosis.debt.label}</h3>
+                <h3>빚 상환</h3>
                 <p className="rp-mid">
-                  {fmt(diagnosis.debt.balance)} <span>만 원 남음</span>
+                  {fmt(diagnosis.debt.remain)} <span>만 원 남음</span>
                 </p>
                 <p className="rp-muted">
-                  매달 {diagnosis.debt.monthly}만 원씩 갚으면 <b>{diagnosis.debt.doneLabel}</b>에 다 갚아요 (
-                  {diagnosis.debt.months}개월).
+                  {diagnosis.debt.doneLabel ? (
+                    <>
+                      매달 {diagnosis.debt.monthly}만 원씩 갚으면 <b>{diagnosis.debt.doneLabel}</b>에 다 갚아요 (
+                      {diagnosis.debt.months}개월).
+                    </>
+                  ) : (
+                    '매달 갚는 돈이 없어서 끝나는 때를 알 수 없어요.'
+                  )}
                 </p>
               </section>
             )}
@@ -593,28 +736,35 @@ export function ReportSheet({ report }) {
         </aside>
       </div>
 
-      <Section number={7} title="결과 해석" className="rp-findings">
+      <Section number={8} title="결과 해석" className="rp-findings">
         <ul>
-          <li>
-            지금 월급이 끊기면 모아둔 돈으로 <b>{diagnosis.surviveNow}개월</b> 버틸 수 있어요. 독립 후에는 생활비가 늘어{' '}
-            <b>{diagnosis.surviveAfter}개월</b>로 줄어요.
-          </li>
-          <li>
-            월급의 <b>{Math.round(cashflow.now.rate)}%</b>를 저축하고 있지만, 독립하면{' '}
-            <b>{Math.round(cashflow.after.rate)}%</b>로 줄어요. 그래서 비상자금을 독립 전에 먼저 채워요.
-          </li>
-          <li>
-            모아둔 {fmt(money.saved)}만 원이면 비상자금은 <b>{allocation.emergencyDoneLabel}</b>에 채워지고, 그다음부터
-            매달 {cashflow.now.save}만 원이 독립 자금으로 가요.
-          </li>
-          <li>
-            구독과 통신비 <b>{highlight.totalCut}만 원</b>을 줄이면 독립이 <b>{highlight.sooner}개월</b> 빨라져요(
-            {highlight.doneLabel}).
-          </li>
-          {diagnosis.debt && (
+          {diagnosis.surviveNow !== null && (
             <li>
-              {diagnosis.debt.label}은 <b>{diagnosis.debt.doneLabel}</b>에 다 갚아요. 그 뒤로는 매달{' '}
-              {diagnosis.debt.monthly}만 원을 더 모을 수 있어요.
+              지금 월급이 끊기면 모아둔 돈으로 <b>{diagnosis.surviveNow}개월</b> 버틸 수 있어요.
+              {hasHousing && diagnosis.surviveAfter !== null && (
+                <>
+                  {' '}
+                  독립 후에는 생활비가 늘어 <b>{diagnosis.surviveAfter}개월</b>로 줄어요.
+                </>
+              )}
+            </li>
+          )}
+          <li>
+            월급의 <b>{Math.round(cashflow.now.rate)}%</b>를 저축하고 있어요.
+            {hasHousing && (
+              <>
+                {' '}
+                독립하면 <b>{Math.round(cashflow.after.rate)}%</b>로 줄어요.
+              </>
+            )}
+          </li>
+          {plan.text.map(line => (
+            <li key={line}>{line}</li>
+          ))}
+          {diagnosis.debt?.doneLabel && (
+            <li>
+              빚은 <b>{diagnosis.debt.doneLabel}</b>에 다 갚아요. 그 뒤로는 매달 {diagnosis.debt.monthly}만 원을 더 모을
+              수 있어요.
             </li>
           )}
         </ul>
@@ -623,8 +773,8 @@ export function ReportSheet({ report }) {
       <footer className="rp-foot">
         <p>입력한 숫자로 계산한 참고용 시뮬레이션이며 실제 결과를 보장하지 않아요. 상품 추천이 아니에요.</p>
         <p>
-          비상자금 개월 수({input.emergency.months}개월), 이사·초기 비용, 주거비 기준(30%)은 팀 결정과 출처 확인 전
-          임시값이에요. 예적금 이자는 계산에 넣지 않았어요.
+          비상자금 개월 수, 이사·초기 비용, 저축·주거비 기준 비율은 팀 결정과 출처 확인 전 일반적인 기준이에요. 예적금
+          이자와 투자 수익률은 계산에 넣지 않았어요.
         </p>
       </footer>
     </article>
@@ -632,7 +782,8 @@ export function ReportSheet({ report }) {
 }
 
 // /report 전체 페이지 (인쇄·PDF 저장용)
-export default function ReportView({ report }) {
+export default function ReportView() {
+  const { plan, demo } = usePlan();
   return (
     <>
       <SiteHeader>
@@ -641,7 +792,7 @@ export default function ReportView({ report }) {
         </button>
       </SiteHeader>
       <main className="rp-page">
-        <ReportSheet report={report} />
+        <ReportSheet plan={plan} demo={demo} />
       </main>
     </>
   );
