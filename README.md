@@ -6,7 +6,7 @@
 
 화면 흐름: `/` 시작 → `/start` 상황 말하기 → `/questions` 질문 답하기 → `/map` 나의 금융 지도 (디자인 목업 4-C 중앙 줄기형)
 
-**기획안 v4 ⑤ 맞춤 리포트:** `/report` — 인바디 결과지처럼 한 장에 보는 돈 구성 리포트. 지금은 시연 인물(정하은, `docs/demo-persona.md`)의 입력으로 계산합니다. 계산은 `lib/report/computeReport.js`, 입력은 `lib/report/demoPersona.js`, 화면은 `components/report/`에 있으며, 엔진(A)이 완성되면 `computeReport`를 같은 출력 형태로 교체합니다. 인쇄·PDF 저장을 지원합니다.
+**기획안 v4 ⑤ 맞춤 리포트:** `/report` (지도 화면에서는 팝업으로 열림). 모은 돈·아낀 돈을 중심으로 한 카드형 리포트입니다. 입력값은 `lib/report/demoPersona.js`와 같은 형태이며, 화면의 **'내 숫자로 바꿔 보기'**에서 직접 고칠 수 있습니다(이 브라우저에만 저장). 계산은 `lib/report/computeReport.js` — 입력 검증(normalizeReportInput), 여유/부족/못 모음 세 가지 판정, 무작위 입력 500개 테스트를 포함합니다. 엔진(A)과 입력 화면(①~③)이 완성되면 같은 입력 형태로 넘기면 됩니다.
 
 ## 실행
 

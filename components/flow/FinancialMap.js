@@ -8,7 +8,7 @@ import { useFlow } from './useFlow.js';
 import { SiteHeader, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
 import ReportDialog from '../report/ReportDialog.js';
 import { computeReport } from '../../lib/report/computeReport.js';
-import { DEMO_PERSONA } from '../../lib/report/demoPersona.js';
+import { useReportInput } from '../report/useReportInput.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
 const REPORT_CLOSED_KEY = 'finpath-report-closed';
@@ -40,8 +40,9 @@ export default function FinancialMap() {
     if (redirect) router.replace(redirect);
   }, [redirect, router]);
 
-  // ⑤ 리포트: 엔진(A)과 연결되기 전까지는 시연 인물의 숫자로 보여 줍니다.
-  const report = useMemo(() => computeReport(DEMO_PERSONA), []);
+  // ⑤ 리포트: /report에서 직접 입력한 값이 있으면 그 값으로, 없으면 시연 인물 값으로 계산합니다.
+  const { input: reportInput, edited: reportEdited } = useReportInput();
+  const report = useMemo(() => computeReport(reportInput), [reportInput]);
   const ready = Boolean(roadmap && !redirect);
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
@@ -78,7 +79,7 @@ export default function FinancialMap() {
           )}
         </div>
       </SiteHeader>
-      {ready && <ReportDialog open={reportOpen} report={report} onClose={closeReport} />}
+      {ready && <ReportDialog open={reportOpen} report={report} edited={reportEdited} onClose={closeReport} />}
       <main className="map-page">
         <StepProgress current={2} />
         {roadmap && !redirect && (
