@@ -71,8 +71,8 @@ const plan = buildPlan(loadProfile()); // 프로필이 없으면 null이므로 �
 
 | 화면 | 쓰는 것 |
 | --- | --- |
-| `/map` 위쪽 "돈의 순서" (`components/flow/MoneyOrder.js`) | `plan.recommended.A/B`, `plan.budget.planGoals`, `plan.fixes`. 규칙 A·B를 고르지 않고 나란히 보여줌 |
-| `/map` 단계 카드 (`FinancialMap.js`) | `buildPlanRoadmap(plan, policies)`. 단계 id가 `data/policies.json`의 `step`과 같아 정책이 붙음 |
+| `/map` 위쪽 "자금 배분" (`components/flow/MoneyOrder.js`) | `plan.recommended.A/B`, `plan.budget.planGoals`, `plan.fixes`. 규칙 A·B를 고르지 않고 나란히 보여줌 |
+| `/map` "실행 로드맵" 단계 카드 (`FinancialMap.js`) | `buildPlanRoadmap(plan, policies)`. 단계 id가 `data/policies.json`의 `step`과 같아 정책이 붙음 |
 | `/report`, 지도의 "맞춤 리포트 받기" 팝업 | `ReportSheet({ plan, demo })`. 프로필은 `components/report/usePlan.js`가 `loadProfile()`로 읽고, 없으면 시연 인물 |
 
 - 지도 단계의 완료 표시는 `localStorage`의 `finpath.plan-done`에 저장합니다.
