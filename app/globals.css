@@ -2761,3 +2761,76 @@ select:focus-visible,
     grid-template-columns: 1fr;
   }
 }
+
+/* 기획안 v4 흐름 5단계 표시 (FlowSteps) */
+.flow-steps li {
+  font-size: 13px;
+  word-break: keep-all;
+}
+.flow-steps__n {
+  font-weight: 700;
+}
+.map-page > .flow-steps {
+  max-width: 720px;
+}
+.rs-page > .flow-steps {
+  max-width: 760px;
+  width: 100%;
+}
+@media screen and (max-width: 520px) {
+  .flow-steps {
+    gap: 4px;
+  }
+  .flow-steps li {
+    font-size: 11px;
+    gap: 6px;
+  }
+}
+@media print {
+  .flow-steps {
+    display: none;
+  }
+}
+.goal-summary-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.site-header__actions .site-header__link {
+  white-space: nowrap;
+}
+@media screen and (max-width: 520px) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+/* 화면 흐름 비교 스위치 (홈 아래, lib/flowMode.js) */
+.flow-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 32px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.flow-switch__btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.flow-switch__btn.is-on {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+.flow-switch__btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

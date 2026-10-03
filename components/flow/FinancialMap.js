@@ -8,7 +8,8 @@ import { policyData } from '../../lib/goal/policyData.js';
 import { clearAll } from '../../lib/goal/store.js';
 import { usePlan } from '../report/usePlan.js';
 import MoneyOrder from './MoneyOrder.js';
-import { SiteHeader, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
+import { SiteHeader, FlowSteps, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
+import { useFlowMode } from '../../lib/flowMode.js';
 import ReportDialog from '../report/ReportDialog.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
@@ -68,6 +69,7 @@ export default function FinancialMap() {
   // 닫은 뒤에는 '맞춤 리포트 받기' 버튼으로 다시 열 수 있습니다.
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
+  const flow = useFlowMode(); // 이전 흐름으로 보기 (lib/flowMode.js)
   useEffect(() => {
     if (!readClosed()) setReportOpen(true);
   }, []);
@@ -102,7 +104,7 @@ export default function FinancialMap() {
       </SiteHeader>
       <ReportDialog open={reportOpen} plan={plan} demo={demo} onClose={closeReport} />
       <main className="map-page">
-        <StepProgress current={2} />
+        {flow === 'classic' ? <StepProgress current={2} /> : <FlowSteps current={4} />}
         <MapIntro roadmap={roadmap} done={done} demo={demo} />
         <MoneyOrder plan={plan} />
         {roadmap.steps.length ? (
