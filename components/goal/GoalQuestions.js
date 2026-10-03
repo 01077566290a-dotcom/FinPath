@@ -17,16 +17,7 @@ import {
 } from '../../lib/goal/engine.js';
 import { loadAnswers, saveAnswers, clearAll } from '../../lib/goal/store.js';
 import { filterPolicies } from '../../lib/goal/policies.js';
-import { mergePolicies } from '../../lib/goal/gov24.js';
-import manualPolicies from '../../data/policies.json';
-import gov24Policies from '../../data/policies-gov24.json';
-
-// 손으로 확인한 정책을 먼저, 보조금24 API로 받은 정책은 이름이 겹치지 않을 때만 뒤에 붙입니다.
-const policyData = {
-  checked_at: manualPolicies.checked_at,
-  fetched_at: gov24Policies.fetched_at,
-  policies: mergePolicies(manualPolicies.policies, gov24Policies.policies),
-};
+import { policyData } from '../../lib/goal/policyData.js';
 import { SiteHeader, PrivacyNote, ArrowIcon } from '../flow/Chrome.js';
 
 export default function GoalQuestions() {
@@ -520,6 +511,9 @@ function Summary({ answers, onEdit, onReset }) {
         <button type="button" className="btn btn--ghost" onClick={onReset}>
           처음부터 다시
         </button>
+        <Link href="/map" className="btn btn--outline btn--md">
+          타임라인 지도 보기
+        </Link>
         <Link href="/report" className="btn btn--primary btn--md">
           내 리포트 보기 <ArrowIcon />
         </Link>

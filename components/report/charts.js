@@ -16,6 +16,16 @@ export const COLOR = {
   base: 'var(--c-base)',
 };
 const fmt = value => Math.round(value).toLocaleString();
+
+// 값의 크기에 맞는 눈금 간격(1·2·5 × 10^n)과 축 끝값. 금액이 커도 눈금이 6개 안팎으로 유지됩니다.
+export function niceScale(maxValue) {
+  const raw = Math.max(maxValue, 1) / 5;
+  const pow = 10 ** Math.floor(Math.log10(raw));
+  const f = raw / pow;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * pow;
+  const max = Math.ceil(maxValue / step) * step;
+  return { step, max, ticks: Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step) };
+}
 const COMPACT = 520; // 이보다 좁으면 항목 이름을 막대 위로 올립니다.
 
 // 글자 폭 어림 (12px 기준: 한글 12.5px, 그 밖 7px). 막대 안 라벨이 들어갈지 판단합니다.
@@ -347,11 +357,12 @@ export function SavingsLines({ data, target, deadline, series, ariaLabel }) {
     right = compact ? 78 : 112,
     top = 22,
     bottom = 40;
-  const maxMonth = data.at(-1).month;
-  const maxY = Math.ceil(Math.max(target, ...data.flatMap(d => series.map(s => d[s.key]))) / 500) * 500;
+  const maxMonth = Math.max(1, data.at(-1).month);
+  const scale = niceScale(Math.max(target, ...data.flatMap(d => series.map(s => d[s.key]))));
+  const maxY = scale.max;
   const x = month => left + (month / maxMonth) * (W - left - right);
   const y = value => top + (1 - value / maxY) * (H - top - bottom);
-  const yTicks = Array.from({ length: maxY / 500 + 1 }, (_, i) => i * 500).filter((tick, i) => !compact || i % 2 === 0);
+  const yTicks = scale.ticks.filter((tick, i) => !compact || i % 2 === 0);
   const xTicks = data.filter(d => d.month % (compact ? 6 : 3) === 0);
   const cross = series.map(s => data.find(d => d[s.key] >= target));
 
@@ -401,10 +412,14 @@ export function SavingsLines({ data, target, deadline, series, ariaLabel }) {
           </text>
         ))}
         <line x1={left} x2={W - right} y1={H - bottom} y2={H - bottom} className="viz__axis" />
-        <line x1={x(deadline.month)} x2={x(deadline.month)} y1={top} y2={H - bottom} className="viz__ref" />
-        <text x={x(deadline.month) - 6} y={top - 8} textAnchor="end" className="viz__sub">
-          {deadline.label}
-        </text>
+        {deadline && (
+          <>
+            <line x1={x(deadline.month)} x2={x(deadline.month)} y1={top} y2={H - bottom} className="viz__ref" />
+            <text x={x(deadline.month) - 6} y={top - 8} textAnchor="end" className="viz__sub">
+              {deadline.label}
+            </text>
+          </>
+        )}
         <line x1={left} x2={W - right} y1={y(target)} y2={y(target)} className="viz__target" />
         <text x={W - right + 8} y={y(target) - 5} className="viz__value viz__value--strong">
           필요한 돈
@@ -545,7 +560,7 @@ export function MilestoneTimeline({ items, toneColor, ariaLabel }) {
     left = 44,
     right = 64,
     axisY = 84;
-  const maxMonth = Math.max(...items.map(item => item.month));
+  const maxMonth = Math.max(1, ...items.map(item => item.month));
   const x = month => left + (month / maxMonth) * (W - left - right);
   return (
     <figure className="viz timeline" ref={ref}>

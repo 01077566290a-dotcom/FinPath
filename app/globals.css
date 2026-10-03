@@ -2302,3 +2302,289 @@ select:focus-visible,
   font-size: 12px;
   color: var(--muted);
 }
+
+/* 리포트 7번: 내 숫자로 맞춘 계획 (2번 계산·개인화) */
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.plan-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.plan-stats > div {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.plan-stats dt {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.plan-stats dd {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+}
+.plan-stats dd span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-2);
+}
+.plan-text {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.plan-sub {
+  margin: 6px 0 0;
+  font-size: 15px;
+}
+.plan-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.plan-rule h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.plan-rule__tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--focus);
+  background: var(--soft);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.plan-rule__badge {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: #0b0b0b;
+  background: #c9f0de;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.plan-rule--safer {
+  border-color: var(--c-saving);
+  box-shadow: inset 0 0 0 1px var(--c-saving);
+}
+.plan-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.plan-steps li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+}
+@media screen and (max-width: 640px) {
+  .plan-rules {
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  .plan-rule {
+    break-inside: avoid;
+  }
+}
+
+/* 타임라인 지도 단계 카드: 숫자 배지와 관련 정책 */
+.map-pop__policies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.map-pop__policies li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.map-pop__policy-note {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* 타임라인 지도 ④: 돈의 순서 패널 */
+.mo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.mo__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mo h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+.mo__lead,
+.mo__desc,
+.mo__note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.mo__lead b {
+  color: var(--text);
+}
+.mo__rules {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.mo__rule {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 150px;
+}
+.mo__rule em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--focus);
+}
+.mo__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.mo__partial {
+  color: var(--text-2);
+}
+.mo__compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.mo__compare > div {
+  background: var(--soft);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.mo__compare p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.map-report-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.map-report-cta p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.mo__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mo__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.mo__num {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--focus);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mo__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mo__meta {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.mo__warn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b3401a;
+}
+.mo__fixes {
+  background: #fff4ee;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.mo__fixes h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.mo__fixes ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+@media screen and (max-width: 640px) {
+  .mo__item {
+    flex-wrap: wrap;
+  }
+  .mo__rules {
+    margin-left: 36px;
+    justify-content: flex-start;
+  }
+  .mo__compare {
+    grid-template-columns: 1fr;
+  }
+}
