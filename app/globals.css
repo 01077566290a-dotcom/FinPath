@@ -2079,3 +2079,89 @@ select:focus-visible,
     print-color-adjust: exact;
   }
 }
+
+/* 지도 화면 위 리포트 팝업 */
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rp-dialog {
+  width: min(1160px, calc(100vw - 32px));
+  max-width: none;
+  height: calc(100vh - 32px);
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: 16px;
+  background: var(--bg);
+  box-shadow: 0 24px 64px rgba(15, 42, 74, 0.35);
+  overflow: hidden;
+}
+.rp-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.rp-dialog::backdrop {
+  background: rgba(15, 42, 74, 0.55);
+}
+.rp-dialog__bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.rp-dialog__title {
+  display: flex;
+  flex-direction: column;
+}
+.rp-dialog__title strong {
+  font-size: 16px;
+  color: var(--primary);
+}
+.rp-dialog__title span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.rp-dialog__actions {
+  display: flex;
+  gap: 8px;
+}
+.rp-page--dialog {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+.rp-page--dialog .rp-sheet {
+  max-width: none;
+}
+@media screen and (max-width: 640px) {
+  .rp-dialog {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+  .rp-dialog__bar {
+    padding: 10px 12px;
+  }
+  .rp-dialog__title span {
+    display: none;
+  }
+  .rp-page--dialog {
+    padding: 12px 8px;
+  }
+  .site-header__actions {
+    gap: 8px;
+  }
+}
+@media print {
+  .rp-dialog {
+    display: none;
+  }
+}

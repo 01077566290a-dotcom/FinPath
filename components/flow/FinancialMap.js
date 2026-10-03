@@ -6,6 +6,27 @@ import { buildRoadmap } from '../../lib/roadmap.js';
 import { createFlow } from '../../lib/flowStore.js';
 import { useFlow } from './useFlow.js';
 import { SiteHeader, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
+import ReportDialog from '../report/ReportDialog.js';
+import { computeReport } from '../../lib/report/computeReport.js';
+import { DEMO_PERSONA } from '../../lib/report/demoPersona.js';
+
+// 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
+const REPORT_CLOSED_KEY = 'finpath-report-closed';
+const readClosed = () => {
+  try {
+    return window.sessionStorage.getItem(REPORT_CLOSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const writeClosed = value => {
+  try {
+    if (value) window.sessionStorage.setItem(REPORT_CLOSED_KEY, '1');
+    else window.sessionStorage.removeItem(REPORT_CLOSED_KEY);
+  } catch {
+    // 저장이 막혀 있어도 팝업 동작에는 문제가 없습니다.
+  }
+};
 
 const REDIRECT = { unrecognized: '/questions', collecting: '/questions', not_applicable: '/questions' };
 
@@ -19,7 +40,26 @@ export default function FinancialMap() {
     if (redirect) router.replace(redirect);
   }, [redirect, router]);
 
+  // ⑤ 리포트: 엔진(A)과 연결되기 전까지는 시연 인물의 숫자로 보여 줍니다.
+  const report = useMemo(() => computeReport(DEMO_PERSONA), []);
+  const ready = Boolean(roadmap && !redirect);
+  const [reportOpen, setReportOpen] = useState(false);
+  const reportButtonRef = useRef(null);
+  useEffect(() => {
+    if (ready && !readClosed()) setReportOpen(true);
+  }, [ready]);
+  function openReport() {
+    writeClosed(false);
+    setReportOpen(true);
+  }
+  function closeReport() {
+    writeClosed(true);
+    setReportOpen(false);
+    requestAnimationFrame(() => reportButtonRef.current?.focus());
+  }
+
   function restart() {
+    writeClosed(false);
     update(createFlow());
     router.push('/start');
   }
@@ -27,10 +67,18 @@ export default function FinancialMap() {
   return (
     <>
       <SiteHeader>
-        <Link href="/questions" className="site-header__link">
-          답변 고치기
-        </Link>
+        <div className="site-header__actions">
+          <Link href="/questions" className="site-header__link">
+            답변 고치기
+          </Link>
+          {ready && (
+            <button type="button" ref={reportButtonRef} className="btn btn--primary btn--sm" onClick={openReport}>
+              내 리포트 보기
+            </button>
+          )}
+        </div>
       </SiteHeader>
+      {ready && <ReportDialog open={reportOpen} report={report} onClose={closeReport} />}
       <main className="map-page">
         <StepProgress current={2} />
         {roadmap && !redirect && (
