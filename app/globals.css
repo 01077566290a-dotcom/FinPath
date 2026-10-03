@@ -2427,7 +2427,7 @@ select:focus-visible,
   font-size: 13px;
 }
 
-/* 타임라인 지도 ④: 돈의 순서 패널 */
+/* 타임라인 지도 ④: 자금 배분 패널 */
 .mo {
   display: flex;
   flex-direction: column;
@@ -2587,4 +2587,25 @@ select:focus-visible,
   .mo__compare {
     grid-template-columns: 1fr;
   }
+}
+
+.mo__sub {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.roadmap-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+.roadmap-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.roadmap-head__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
 }

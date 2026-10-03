@@ -76,10 +76,13 @@ export default function FinancialMap() {
       <ReportDialog open={reportOpen} plan={plan} demo={demo} onClose={closeReport} />
       <main className="map-page">
         <StepProgress current={2} />
-        <MapIntro roadmap={roadmap} done={done} demo={demo} />
+        <MapIntro demo={demo} />
         <MoneyOrder plan={plan} />
         {roadmap.steps.length ? (
-          <MapBoard roadmap={roadmap} done={done} onToggleDone={toggleDone} />
+          <>
+            <RoadmapHeading roadmap={roadmap} done={done} />
+            <MapBoard roadmap={roadmap} done={done} onToggleDone={toggleDone} />
+          </>
         ) : (
           <p className="card empty-map">지도에 담을 단계가 없어요. 입력 화면에서 목적을 골라 주세요.</p>
         )}
@@ -100,22 +103,30 @@ export default function FinancialMap() {
   );
 }
 
-function MapIntro({ roadmap, done, demo }) {
-  const doneCount = roadmap.steps.filter(step => done[step.id]).length;
+function MapIntro({ demo }) {
   return (
     <div className="map-intro">
       <div className="flow-heading">
         <h1>나의 금융 지도</h1>
-        <p>
-          돈은 아래 ‘돈의 순서’대로 나누고, 행동은 번호 순서대로 따라가 보세요. 단계를 누르면 내 숫자로 환산한 설명이
-          열려요.
-        </p>
+        <p>돈을 어떻게 나눌지(자금 배분)와, 그에 맞춰 언제 무엇을 할지(실행 로드맵)를 내 숫자로 정리했어요.</p>
       </div>
       {demo && (
         <p className="info-note">
           지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">내 돈 상황을 입력</Link>하면 내 숫자로 바뀌어요.
         </p>
       )}
+    </div>
+  );
+}
+
+function RoadmapHeading({ roadmap, done }) {
+  const doneCount = roadmap.steps.filter(step => done[step.id]).length;
+  return (
+    <div className="roadmap-head">
+      <h2 id="roadmap-title">실행 로드맵</h2>
+      <p className="roadmap-head__sub">
+        언제 무엇을 해야 하는지, 번호 순서대로 따라가 보세요. 단계를 누르면 내 숫자로 환산한 설명이 열려요.
+      </p>
       <div className="map-legend">
         <span>
           <i className="legend-swatch legend-swatch--selected" />
