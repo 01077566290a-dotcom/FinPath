@@ -3,7 +3,7 @@ import { PLAN_CONFIG } from '../../lib/plan/config.js';
 
 const fmt = value => Math.round(value).toLocaleString();
 
-// 우선순위 타임라인의 "돈의 순서": 어떤 목표에 어떤 순서로 얼마를 나누는지를 규칙 A·B 두 가지로 함께 보여줍니다.
+// 우선순위 타임라인의 "자금 배분": 어떤 목표에 어떤 순서로 얼마를 나누는지를 규칙 A·B 두 가지로 함께 보여줍니다.
 // 규칙은 고르는 게 아니라 두 결과를 나란히 비교합니다.
 export default function MoneyOrder({ plan }) {
   const { budget } = plan;
@@ -47,7 +47,8 @@ export default function MoneyOrder({ plan }) {
   return (
     <section className="mo card" aria-labelledby="mo-title">
       <div>
-        <h2 id="mo-title">돈의 순서</h2>
+        <h2 id="mo-title">자금 배분</h2>
+        <p className="mo__sub">어디에 얼마를 어떤 순서로 모을지 정했어요.</p>
         <p className="mo__lead">
           매달 <b>{fmt(pace)}만 원</b>(월급의 {budget.plan.saveRate}%)을 아래 순서대로 나눠요.
           {canCompare && ' 비상자금을 어떻게 채우느냐에 따라 규칙 A와 B 두 가지 결과가 나와요.'}
