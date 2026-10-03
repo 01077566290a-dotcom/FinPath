@@ -6,6 +6,8 @@
 
 화면 흐름: `/` 시작 → `/start` 상황 말하기 → `/questions` 질문 답하기 → `/map` 나의 금융 지도 (디자인 목업 4-C 중앙 줄기형)
 
+**기획안 v4 ⑤ 맞춤 리포트:** `/report` — 인바디 결과지처럼 한 장에 보는 돈 구성 리포트. 지금은 시연 인물(정하은, `docs/demo-persona.md`)의 입력으로 계산합니다. 계산은 `lib/report/computeReport.js`, 입력은 `lib/report/demoPersona.js`, 화면은 `components/report/`에 있으며, 엔진(A)이 완성되면 `computeReport`를 같은 출력 형태로 교체합니다. 인쇄·PDF 저장을 지원합니다.
+
 ## 실행
 
 Next.js App Router, JavaScript, React를 사용합니다. Node.js 22 이상을 권장합니다.
