@@ -2761,3 +2761,46 @@ select:focus-visible,
     grid-template-columns: 1fr;
   }
 }
+
+/* 기획안 v4 흐름 5단계 표시 (FlowSteps) */
+.flow-steps li {
+  font-size: 13px;
+  word-break: keep-all;
+}
+.flow-steps__n {
+  font-weight: 700;
+}
+.map-page > .flow-steps {
+  max-width: 720px;
+}
+.rs-page > .flow-steps {
+  max-width: 760px;
+  width: 100%;
+}
+@media screen and (max-width: 520px) {
+  .flow-steps {
+    gap: 4px;
+  }
+  .flow-steps li {
+    font-size: 11px;
+    gap: 6px;
+  }
+}
+@media print {
+  .flow-steps {
+    display: none;
+  }
+}
+.goal-summary-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.site-header__actions .site-header__link {
+  white-space: nowrap;
+}
+@media screen and (max-width: 520px) {
+  .hide-sm {
+    display: none;
+  }
+}

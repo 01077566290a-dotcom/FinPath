@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { UNKNOWN } from '../lib/goal/questions.js';
+import { UNKNOWN, QUESTION_BY_ID, stageOf } from '../lib/goal/questions.js';
 import {
   answer,
   skip,
@@ -88,6 +88,7 @@ test('교통비를 안 쓰면 독립 후 교통비를 묻지 않는다', () => {
 
 test('빚이 없으면 빚 금액과 "빚 상환" 목적을 묻지 않는다', () => {
   const answers = answerAll([
+    ['goal', { amount: 1500, months: 12 }],
     ['income', 245],
     ['has_debt', 'no'],
   ]);
@@ -105,6 +106,18 @@ test('월세가 아니면 월세·관리비를 묻지 않고, 대출 예정일 �
   assert.equal(answers.rent, undefined);
   answers = answer(answers, 'loan_plan', '예', { now: NOW }).answers;
   assert.equal(nextQuestion(answers).id, 'loan_amount');
+});
+
+test('기획안 v4 순서: ① 목표와 내 돈 상황 → ② 지역과 목적 → ③ 목적별 상세', () => {
+  assert.equal(nextQuestion({}).id, 'goal');
+  const order = visibleQuestions(answerAll(HAEUN)).map(q => stageOf(q));
+  assert.deepEqual(
+    order,
+    [...order].sort((x, y) => x - y),
+  );
+  assert.equal(stageOf(QUESTION_BY_ID.region), 2);
+  assert.equal(stageOf(QUESTION_BY_ID.purposes), 2);
+  assert.equal(stageOf(QUESTION_BY_ID.deposit), 3);
 });
 
 test('"모름"은 null과 unknowns로 기록된다', () => {

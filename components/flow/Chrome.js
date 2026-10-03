@@ -46,6 +46,30 @@ export function StepProgress({ current }) {
   );
 }
 
+// 기획안 v4의 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
+const FLOW = ['목표·내 돈', '지역·목적', '상세 정보', '타임라인', '리포트'];
+export function FlowSteps({ current }) {
+  return (
+    <ol className="stage-progress flow-steps" aria-label="진행 단계">
+      {FLOW.map((label, i) => {
+        const n = i + 1;
+        return (
+          <li
+            key={label}
+            className={n < current ? 'is-past' : n === current ? 'is-current' : ''}
+            aria-current={n === current ? 'step' : undefined}
+          >
+            <span className="stage-progress__bar" aria-hidden="true" />
+            <span>
+              <span className="flow-steps__n">{'①②③④⑤'[i]}</span> {label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export function PrivacyNote({ persistent = true }) {
   return (
     <p className="privacy-note">

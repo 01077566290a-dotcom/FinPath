@@ -35,8 +35,11 @@ export default function ReportDialog({ open, plan, demo, onClose }) {
           <span>닫으면 타임라인 지도를 볼 수 있어요</span>
         </p>
         <div className="rp-dialog__actions">
+          <Link href="/goal" className="btn btn--ghost btn--sm">
+            답 고치기
+          </Link>
           <Link href="/report" className="btn btn--outline btn--sm">
-            값 바꾸기 · 인쇄
+            크게 보기 · 인쇄
           </Link>
           <button type="button" className="btn btn--primary btn--sm" ref={closeRef} onClick={onClose}>
             지도 보기

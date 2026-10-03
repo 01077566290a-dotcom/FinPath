@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { visibleQuestions } from '../../lib/goal/engine.js';
 import { UNKNOWN } from '../../lib/goal/questions.js';
 
-// '내 숫자로 바꿔 보기': 입력 화면(/goal)의 숫자 답을 리포트에서 바로 고칩니다.
+// '빠르게 숫자 바꿔 보기' (리포트 맨 아래, 시연용 보조 도구): 입력 화면(/goal)의 숫자 답을 리포트에서 바로 고칩니다.
+// 답 고치기의 기본 자리는 입력 단계(①~③)의 확인 화면이에요.
 // 고친 값은 1번 엔진이 검증하고 같은 저장소에 저장되어, 리포트·지도·입력 화면이 모두 같은 값을 씁니다.
 // 고르는 질문(목적·지역·집 형태 등)은 입력 화면에서 바꿉니다.
 const EDITABLE = ['number', 'numbers', 'goal', 'yearMonth', 'cuttable'];
@@ -174,13 +175,13 @@ export default function ReportEditor({ answers, mode, onAnswer, onReset }) {
     <section className={`re${open ? ' re--open' : ''}`} aria-labelledby="re-title">
       <div className="re__bar">
         <div>
-          <h2 id="re-title">내 숫자로 바꿔 보기</h2>
+          <h2 id="re-title">빠르게 숫자 바꿔 보기</h2>
           <p>
             {mode === 'demo'
-              ? '지금은 시연 인물(정하은)의 답이에요. 고치면 내 답으로 저장돼요.'
+              ? '시연 인물(정하은)의 숫자를 바꿔 보며 리포트가 어떻게 달라지는지 볼 수 있어요. 고치면 내 답으로 저장돼요.'
               : mode === 'partial'
                 ? '입력 화면을 마치면 여기서 고칠 수 있어요.'
-                : '입력 화면에서 답한 값이에요. 고치면 리포트와 지도가 함께 바뀌어요.'}
+                : '숫자만 빠르게 바꿔 볼 수 있어요. 모든 답은 ‘답 고치기’(입력 확인 화면)에서 고쳐요.'}
           </p>
         </div>
         <div className="re__actions">

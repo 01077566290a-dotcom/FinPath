@@ -98,8 +98,7 @@ export function ReportSheet({ plan, demo = false }) {
       </header>
       {demo && (
         <p className="rs-demo-note">
-          지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">내 돈 상황을 입력</Link>하거나 아래 ‘내 숫자로 바꿔
-          보기’에서 고치면 내 숫자로 바뀌어요.
+          지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">①~③ 입력</Link>을 마치면 내 숫자로 바뀌어요.
         </p>
       )}
 

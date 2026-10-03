@@ -1,7 +1,15 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { QUESTION_BY_ID, UNKNOWN, SIDO, CUTTABLE_ITEMS, optionsFor } from '../../lib/goal/questions.js';
+import {
+  QUESTION_BY_ID,
+  UNKNOWN,
+  SIDO,
+  CUTTABLE_ITEMS,
+  STAGES,
+  stageOf,
+  optionsFor,
+} from '../../lib/goal/questions.js';
 
 const THIS_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 6 }, (_, i) => THIS_YEAR + i);
@@ -18,7 +26,7 @@ import {
 import { loadAnswers, saveAnswers, clearAll } from '../../lib/goal/store.js';
 import { filterPolicies } from '../../lib/goal/policies.js';
 import { policyData } from '../../lib/goal/policyData.js';
-import { SiteHeader, PrivacyNote, ArrowIcon } from '../flow/Chrome.js';
+import { SiteHeader, PrivacyNote, ArrowIcon, FlowSteps } from '../flow/Chrome.js';
 
 export default function GoalQuestions() {
   const [state, setState] = useState(null); // { answers, persistent }
@@ -58,7 +66,7 @@ export default function GoalQuestions() {
   };
 
   return (
-    <Page persistent={persistent}>
+    <Page persistent={persistent} step={question ? stageOf(question) : 3}>
       {question ? (
         <QuestionView
           key={question.id}
@@ -76,7 +84,7 @@ export default function GoalQuestions() {
   );
 }
 
-function Page({ persistent, children }) {
+function Page({ persistent, step = 1, children }) {
   return (
     <>
       <SiteHeader>
@@ -84,6 +92,7 @@ function Page({ persistent, children }) {
       </SiteHeader>
       <main className="flow-page">
         <div className="flow-column">
+          <FlowSteps current={step} />
           {children}
           <PrivacyNote persistent={persistent} />
         </div>
@@ -117,7 +126,10 @@ function QuestionView({ question, answers, current, onSubmit, onBack, editing })
         </div>
       )}
       <div className="flow-heading">
-        {question.group !== 'common' && <p className="goal-group">{question.group}</p>}
+        <p className="goal-group">
+          {'①②③'[stageOf(question) - 1]} {STAGES[stageOf(question) - 1].label}
+          {question.group !== 'common' && ` · ${question.group}`}
+        </p>
         <h1 id="goal-question-title" ref={titleRef} tabIndex={-1}>
           {question.title}
         </h1>
@@ -466,22 +478,33 @@ function Summary({ answers, onEdit, onReset }) {
     <section className="question review" aria-labelledby="goal-summary-title">
       <div className="flow-heading">
         <h1 id="goal-summary-title">필요한 정보를 모두 받았어요</h1>
-        <p>틀린 답이 있으면 고칠 수 있어요. 고치면 리포트와 타임라인 숫자도 다시 계산돼요.</p>
+        <p>①~③에서 답한 내용이에요. 틀린 답은 여기서 고치면 ④ 타임라인과 ⑤ 리포트 숫자가 함께 다시 계산돼요.</p>
       </div>
 
-      <dl className="card goal-summary">
-        {visibleQuestions(answers).map(q => (
-          <div key={q.id} className="goal-summary__row">
-            <dt>{q.title}</dt>
-            <dd>
-              <span>{show(q, answers[q.id])}</span>
-              <button type="button" className="btn btn--ghost goal-edit" onClick={() => onEdit(q.id)}>
-                고치기
-              </button>
-            </dd>
+      {STAGES.map(stage => {
+        const rows = visibleQuestions(answers).filter(q => stageOf(q) === stage.n);
+        if (!rows.length) return null;
+        return (
+          <div key={stage.n} className="goal-summary-stage">
+            <h2 className="goal-subtitle">
+              {'①②③'[stage.n - 1]} {stage.label}
+            </h2>
+            <dl className="card goal-summary">
+              {rows.map(q => (
+                <div key={q.id} className="goal-summary__row">
+                  <dt>{q.title}</dt>
+                  <dd>
+                    <span>{show(q, answers[q.id])}</span>
+                    <button type="button" className="btn btn--ghost goal-edit" onClick={() => onEdit(q.id)}>
+                      고치기
+                    </button>
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
-        ))}
-      </dl>
+        );
+      })}
 
       <h2 className="goal-subtitle">나에게 맞을 수 있는 정책 {policies.length}개</h2>
       {policies.length === 0 ? (
@@ -511,11 +534,11 @@ function Summary({ answers, onEdit, onReset }) {
         <button type="button" className="btn btn--ghost" onClick={onReset}>
           처음부터 다시
         </button>
-        <Link href="/map" className="btn btn--outline btn--md">
-          타임라인 지도 보기
+        <Link href="/report" className="btn btn--outline btn--md">
+          리포트만 보기
         </Link>
-        <Link href="/report" className="btn btn--primary btn--md">
-          내 리포트 보기 <ArrowIcon />
+        <Link href="/map" className="btn btn--primary btn--md">
+          ④ 타임라인 보기 <ArrowIcon />
         </Link>
       </div>
     </section>

@@ -8,7 +8,7 @@ import { policyData } from '../../lib/goal/policyData.js';
 import { clearAll } from '../../lib/goal/store.js';
 import { usePlan } from '../report/usePlan.js';
 import MoneyOrder from './MoneyOrder.js';
-import { SiteHeader, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
+import { SiteHeader, FlowSteps, PrivacyNote, Disclaimer } from './Chrome.js';
 import ReportDialog from '../report/ReportDialog.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
@@ -102,7 +102,7 @@ export default function FinancialMap() {
       </SiteHeader>
       <ReportDialog open={reportOpen} plan={plan} demo={demo} onClose={closeReport} />
       <main className="map-page">
-        <StepProgress current={2} />
+        <FlowSteps current={4} />
         <MapIntro roadmap={roadmap} done={done} demo={demo} />
         <MoneyOrder plan={plan} />
         {roadmap.steps.length ? (
