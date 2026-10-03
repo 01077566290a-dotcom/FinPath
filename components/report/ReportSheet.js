@@ -5,6 +5,7 @@ import { viewFromPlan, monthsWithExtra, savingsLine } from '../../lib/report/fro
 import { money, monthLabel, duration } from '../../lib/report/format.js';
 import { SavingsLines } from './charts.js';
 import PlanSection from './PlanSection.js';
+import { useFlowMode } from '../../lib/flowMode.js';
 
 const pct = (value, total) => (total > 0 ? Math.max(0, Math.min(100, (value / total) * 100)) : 0);
 
@@ -52,6 +53,7 @@ function Card({ title, sub, tone, children, id }) {
 // plan은 2번 엔진 buildPlan(profile)의 결과이고, 화면용 정리는 lib/report/fromPlan.js가 합니다.
 export function ReportSheet({ plan, demo = false }) {
   const view = useMemo(() => viewFromPlan(plan, { demo }), [plan, demo]);
+  const classic = useFlowMode() === 'classic';
   const { core, cashflow, cuts, fixes, checks, milestones, status, verdict, goals } = view;
 
   // 아낄 항목은 사용자가 직접 켜고 끕니다. 고른 만큼 엔진 시뮬레이션으로 다시 계산합니다.
@@ -98,7 +100,17 @@ export function ReportSheet({ plan, demo = false }) {
       </header>
       {demo && (
         <p className="rs-demo-note">
-          지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">①~③ 입력</Link>을 마치면 내 숫자로 바뀌어요.
+          지금은 시연 인물(정하은) 기준이에요.{' '}
+          {classic ? (
+            <>
+              <Link href="/goal">내 돈 상황을 입력</Link>하거나 아래 ‘내 숫자로 바꿔 보기’에서 고치면 내 숫자로
+              바뀌어요.
+            </>
+          ) : (
+            <>
+              <Link href="/goal">①~③ 입력</Link>을 마치면 내 숫자로 바뀌어요.
+            </>
+          )}
         </p>
       )}
 

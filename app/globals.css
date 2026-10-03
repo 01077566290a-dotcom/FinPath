@@ -2804,3 +2804,33 @@ select:focus-visible,
     display: none;
   }
 }
+
+/* 화면 흐름 비교 스위치 (홈 아래, lib/flowMode.js) */
+.flow-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 32px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.flow-switch__btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.flow-switch__btn.is-on {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+.flow-switch__btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

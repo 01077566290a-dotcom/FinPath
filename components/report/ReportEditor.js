@@ -163,7 +163,7 @@ function Field({ question, answers, onAnswer }) {
   );
 }
 
-export default function ReportEditor({ answers, mode, onAnswer, onReset }) {
+export default function ReportEditor({ answers, mode, onAnswer, onReset, classic = false }) {
   const [open, setOpen] = useState(false);
   const visible = answers ? visibleQuestions(answers).filter(q => EDITABLE.includes(q.type)) : [];
   const byId = Object.fromEntries(visible.map(q => [q.id, q]));
@@ -175,13 +175,17 @@ export default function ReportEditor({ answers, mode, onAnswer, onReset }) {
     <section className={`re${open ? ' re--open' : ''}`} aria-labelledby="re-title">
       <div className="re__bar">
         <div>
-          <h2 id="re-title">빠르게 숫자 바꿔 보기</h2>
+          <h2 id="re-title">{classic ? '내 숫자로 바꿔 보기' : '빠르게 숫자 바꿔 보기'}</h2>
           <p>
             {mode === 'demo'
-              ? '시연 인물(정하은)의 숫자를 바꿔 보며 리포트가 어떻게 달라지는지 볼 수 있어요. 고치면 내 답으로 저장돼요.'
+              ? classic
+                ? '지금은 시연 인물(정하은)의 답이에요. 고치면 내 답으로 저장돼요.'
+                : '시연 인물(정하은)의 숫자를 바꿔 보며 리포트가 어떻게 달라지는지 볼 수 있어요. 고치면 내 답으로 저장돼요.'
               : mode === 'partial'
                 ? '입력 화면을 마치면 여기서 고칠 수 있어요.'
-                : '숫자만 빠르게 바꿔 볼 수 있어요. 모든 답은 ‘답 고치기’(입력 확인 화면)에서 고쳐요.'}
+                : classic
+                  ? '입력 화면에서 답한 값이에요. 고치면 리포트와 지도가 함께 바뀌어요.'
+                  : '숫자만 빠르게 바꿔 볼 수 있어요. 모든 답은 ‘답 고치기’(입력 확인 화면)에서 고쳐요.'}
           </p>
         </div>
         <div className="re__actions">

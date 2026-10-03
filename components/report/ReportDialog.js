@@ -2,12 +2,14 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ReportSheet } from './ReportSheet.js';
+import { useFlowMode } from '../../lib/flowMode.js';
 
 // 지도 화면 위에 띄우는 리포트 팝업. 닫으면 뒤의 타임라인 지도가 보입니다.
 // 브라우저 기본 <dialog>를 써서 포커스가 팝업 안에 머물고, Esc·바깥 클릭으로 닫힙니다.
 export default function ReportDialog({ open, plan, demo, onClose }) {
   const ref = useRef(null);
   const closeRef = useRef(null);
+  const classic = useFlowMode() === 'classic';
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
@@ -35,12 +37,20 @@ export default function ReportDialog({ open, plan, demo, onClose }) {
           <span>닫으면 타임라인 지도를 볼 수 있어요</span>
         </p>
         <div className="rp-dialog__actions">
-          <Link href="/goal" className="btn btn--ghost btn--sm">
-            답 고치기
-          </Link>
-          <Link href="/report" className="btn btn--outline btn--sm">
-            크게 보기 · 인쇄
-          </Link>
+          {classic ? (
+            <Link href="/report" className="btn btn--outline btn--sm">
+              값 바꾸기 · 인쇄
+            </Link>
+          ) : (
+            <>
+              <Link href="/goal" className="btn btn--ghost btn--sm">
+                답 고치기
+              </Link>
+              <Link href="/report" className="btn btn--outline btn--sm">
+                크게 보기 · 인쇄
+              </Link>
+            </>
+          )}
           <button type="button" className="btn btn--primary btn--sm" ref={closeRef} onClick={onClose}>
             지도 보기
           </button>

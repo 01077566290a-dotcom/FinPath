@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { UNKNOWN, QUESTION_BY_ID, stageOf } from '../lib/goal/questions.js';
+import { UNKNOWN, QUESTION_BY_ID, stageOf, applyQuestionOrder } from '../lib/goal/questions.js';
 import {
   answer,
   skip,
@@ -118,6 +118,21 @@ test('기획안 v4 순서: ① 목표와 내 돈 상황 → ② 지역과 목적
   assert.equal(stageOf(QUESTION_BY_ID.region), 2);
   assert.equal(stageOf(QUESTION_BY_ID.purposes), 2);
   assert.equal(stageOf(QUESTION_BY_ID.deposit), 3);
+});
+
+test('이전 흐름(classic)으로 바꾸면 예전 순서로 묻고, 다시 기획안 순서로 돌아온다', () => {
+  try {
+    applyQuestionOrder('classic');
+    assert.equal(nextQuestion({}).id, 'income');
+    const answers = answerAll([
+      ['income', 245],
+      ['has_debt', 'no'],
+    ]);
+    assert.equal(nextQuestion(answers).id, 'fixed_items');
+  } finally {
+    applyQuestionOrder('plan');
+  }
+  assert.equal(nextQuestion({}).id, 'goal');
 });
 
 test('"모름"은 null과 unknowns로 기록된다', () => {
