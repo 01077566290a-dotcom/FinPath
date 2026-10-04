@@ -52,8 +52,8 @@ export function StepProgress({ current }) {
 }
 
 // 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
-// 헤더 바로 아래 화면 폭 띠로 보여 줘요. 지난 단계는 체크, 지금 단계는 검정, 남은 단계는 회색이에요.
-// fill: 지금 단계 안에서 답한 비율 ({ ratio }). 주면 지금 단계 아래 막대를 그만큼 채워요.
+// 얇은 막대 + 이름. 헤더 아래 가운데에 놓아요. 타임라인·리포트 단계는 눌러서 갈 수 있어요.
+// fill: 지금 단계 안에서 답한 비율 ({ ratio }). 주면 지금 단계 막대를 그만큼 채워요.
 const FLOW = [
   { label: '목표·내 돈', href: '/goal' },
   { label: '맞춤 질문', href: '/goal' },
@@ -65,48 +65,41 @@ export function FlowSteps({ current, fill = null }) {
   const onGoal = current <= 3;
   return (
     <nav className="flowbar" aria-label="진행 단계">
-      <ol className="flowbar__list">
+      <ol className="stage-progress flow-steps">
         {FLOW.map((step, i) => {
           const n = i + 1;
-          const state = n < current ? 'is-past' : n === current ? 'is-current' : '';
+          const isCurrent = n === current;
+          const pct = isCurrent && fill ? Math.round(Math.max(0.08, fill.ratio) * 100) : null;
           // 입력 중에는 ①~③ 사이를 링크로 오가지 않아요 (질문 순서가 있어서)
-          const linkable = n !== current && !(onGoal && n <= 3);
+          const linkable = !isCurrent && !(onGoal && n <= 3);
           const body = (
             <>
-              <span className="flowbar__dot" aria-hidden="true">
-                {n < current ? (
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12.5l4.5 4.5L19 7.5" />
-                  </svg>
-                ) : (
-                  n
-                )}
+              <span
+                className="stage-progress__bar"
+                aria-hidden="true"
+                style={
+                  pct !== null
+                    ? { background: `linear-gradient(to right, var(--primary) ${pct}%, var(--track) ${pct}%)` }
+                    : undefined
+                }
+              />
+              <span>
+                <span className="flow-steps__n">{'①②③④⑤'[i]}</span> {step.label}
               </span>
-              <span className="flowbar__label">{step.label}</span>
-              {n === current && fill && (
-                <span className="flowbar__fill" aria-hidden="true">
-                  <i style={{ width: `${Math.round(Math.max(0.06, fill.ratio) * 100)}%` }} />
-                </span>
-              )}
             </>
           );
           return (
-            <li key={step.label} className={`flowbar__step ${state}`} aria-current={n === current ? 'step' : undefined}>
+            <li
+              key={step.label}
+              className={n < current ? 'is-past' : isCurrent ? 'is-current' : ''}
+              aria-current={isCurrent ? 'step' : undefined}
+            >
               {linkable ? (
-                <Link href={step.href} className="flowbar__link">
+                <Link href={step.href} className="flow-steps__link">
                   {body}
                 </Link>
               ) : (
-                <span className="flowbar__link">{body}</span>
+                <span className="flow-steps__link">{body}</span>
               )}
             </li>
           );

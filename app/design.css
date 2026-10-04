@@ -1493,139 +1493,34 @@ html {
   width: 100%;
 }
 
-/* ── 5단계 진행 띠 (헤더 바로 아래, 화면 폭) ── */
+/* ── 5단계 진행 표시: 원래의 얇은 막대 모양, 헤더 아래 가운데 정렬 ── */
 .flowbar {
-  background: var(--ds-surface);
-  border-bottom: 1px solid var(--ds-line);
-  padding: 14px var(--gutter);
+  padding: 22px var(--gutter) 0;
 }
-.flowbar__list {
-  max-width: 1120px;
+.flowbar .flow-steps {
+  max-width: 760px;
+  width: 100%;
   margin: 0 auto;
+}
+.flow-steps__link {
   display: flex;
-  align-items: flex-start;
-}
-.flowbar__step {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-}
-/* 단계 사이 연결선: 점 오른쪽에서 다음 점까지 */
-.flowbar__step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 15px;
-  left: 40px;
-  right: 8px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--ds-line-strong);
-}
-.flowbar__step.is-past:not(:last-child)::after {
-  background: var(--ds-money);
-}
-.flowbar__link {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding-right: 12px;
-  background: var(--ds-surface);
-  border-radius: 10px;
-  color: var(--ds-ink-3);
+  gap: 8px;
+  color: inherit;
 }
-a.flowbar__link:hover .flowbar__label {
+a.flow-steps__link:hover > span:last-child {
   color: var(--ds-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.flowbar__dot {
-  display: inline-grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid var(--ds-line-strong);
-  background: var(--ds-surface);
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--ds-ink-3);
-  transition:
-    background 0.2s,
-    border-color 0.2s;
-}
-.flowbar__label {
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.flowbar__step.is-past .flowbar__dot {
-  background: var(--ds-money);
-  border-color: var(--ds-money);
-  color: #fff;
-}
-.flowbar__step.is-past .flowbar__label {
-  color: var(--ds-ink-2);
-}
-.flowbar__step.is-current .flowbar__dot {
-  background: var(--ds-ink);
-  border-color: var(--ds-ink);
-  color: #fff;
-  box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.1);
-}
-.flowbar__step.is-current .flowbar__label {
-  color: var(--ds-ink);
-  font-weight: 800;
-}
-.flowbar__fill {
-  display: block;
-  width: 72px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--ds-sunken);
-  overflow: hidden;
-}
-.flowbar__fill i {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--ds-ink);
-  transition: width 0.3s var(--ds-ease);
-}
-/* 예전 칸 안 진행 표시 자리 여백 정리 */
 .flowbar + .flow-page,
 .flowbar + .map-page,
 .flowbar + .rs-page {
-  padding-top: 28px;
+  padding-top: 24px;
 }
 @media (max-width: 640px) {
   .flowbar {
-    padding: 10px 16px;
-  }
-  .flowbar__dot {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
-  }
-  .flowbar__step:not(:last-child)::after {
-    top: 12px;
-    left: 32px;
-  }
-  .flowbar__label {
-    font-size: 11px;
-  }
-  /* 좁은 화면: 지금 단계 이름만 보이고 나머지는 번호만 */
-  .flowbar__step:not(.is-current) .flowbar__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-  .flowbar__fill {
-    width: 48px;
+    padding: 16px 16px 0;
   }
 }
 @media print {
@@ -1699,7 +1594,6 @@ a.flowbar__link:hover .flowbar__label {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
-  cursor: grab;
   border-radius: 28px;
   background: var(--ds-surface);
   border: 1px solid var(--ds-line);
@@ -1707,9 +1601,6 @@ a.flowbar__link:hover .flowbar__label {
   /* 양 끝을 살짝 흐리게 해서 옆으로 더 있다는 걸 보여줘요 */
   mask-image: linear-gradient(to right, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%);
-}
-.track__viewport:active {
-  cursor: grabbing;
 }
 .track__rail {
   position: relative;
@@ -1810,8 +1701,10 @@ a.flowbar__link:hover .flowbar__label {
   color: var(--ds-ink);
   cursor: pointer;
   word-break: keep-all;
+  /* 커서와의 거리에 따라 --mag(1~1.1)만큼 커져요 (TimelineTrack의 magnify) */
+  transform: scale(var(--mag, 1));
   transition:
-    transform 0.28s var(--ds-ease),
+    transform 0.16s ease-out,
     box-shadow 0.28s var(--ds-ease),
     border-color 0.2s;
 }
@@ -1849,7 +1742,7 @@ a.flowbar__link:hover .flowbar__label {
 .track__card:hover,
 .track__card:focus-visible {
   z-index: 3;
-  transform: scale(1.12);
+  transform: scale(calc(var(--mag, 1) + 0.06));
   box-shadow: var(--ds-shadow-lift);
   border-color: var(--ds-ink);
 }
