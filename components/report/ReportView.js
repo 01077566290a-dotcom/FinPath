@@ -46,8 +46,8 @@ export default function ReportView() {
           {print}
         </div>
       </SiteHeader>
+      <FlowSteps current={5} />
       <main className="rs-page">
-        <FlowSteps current={5} />
         {sheet}
         {editor}
       </main>

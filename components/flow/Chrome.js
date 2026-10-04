@@ -46,40 +46,68 @@ export function StepProgress({ current }) {
   );
 }
 
-// 기획안 v4의 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
-const FLOW = ['목표·내 돈', '맞춤 질문', '정책 찾기', '타임라인', '리포트'];
-// fill: 지금 단계 안에서 답한 비율 ({ ratio, done, total }). 주면 지금 단계 막대를 그만큼만 채우고 "3/7"을 함께 보여줘요.
+// 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
+// 헤더 바로 아래 화면 폭 띠로 보여 줘요. 지난 단계는 체크, 지금 단계는 검정, 남은 단계는 회색이에요.
+// fill: 지금 단계 안에서 답한 비율 ({ ratio }). 주면 지금 단계 아래 막대를 그만큼 채워요.
+const FLOW = [
+  { label: '목표·내 돈', href: '/goal' },
+  { label: '맞춤 질문', href: '/goal' },
+  { label: '정책 찾기', href: '/goal' },
+  { label: '타임라인', href: '/map' },
+  { label: '리포트', href: '/report' },
+];
 export function FlowSteps({ current, fill = null }) {
+  const onGoal = current <= 3;
   return (
-    <ol className="stage-progress flow-steps" aria-label="진행 단계">
-      {FLOW.map((label, i) => {
-        const n = i + 1;
-        const isCurrent = n === current;
-        const partial = isCurrent && fill && fill.total > 0;
-        const pct = partial ? Math.round(Math.max(0.08, fill.ratio) * 100) : null;
-        return (
-          <li
-            key={label}
-            className={n < current ? 'is-past' : isCurrent ? 'is-current' : ''}
-            aria-current={isCurrent ? 'step' : undefined}
-          >
-            <span
-              className="stage-progress__bar"
-              aria-hidden="true"
-              style={
-                partial
-                  ? { background: `linear-gradient(to right, var(--primary) ${pct}%, var(--track) ${pct}%)` }
-                  : undefined
-              }
-            />
-            <span>
-              <span className="flow-steps__n">{'①②③④⑤'[i]}</span> {label}
-              {/* "3/7" 같은 개수는 답에 따라 전체가 늘어나 끝이 멀어 보여서, 막대 채움만 보여줘요 */}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
+    <nav className="flowbar" aria-label="진행 단계">
+      <ol className="flowbar__list">
+        {FLOW.map((step, i) => {
+          const n = i + 1;
+          const state = n < current ? 'is-past' : n === current ? 'is-current' : '';
+          // 입력 중에는 ①~③ 사이를 링크로 오가지 않아요 (질문 순서가 있어서)
+          const linkable = n !== current && !(onGoal && n <= 3);
+          const body = (
+            <>
+              <span className="flowbar__dot" aria-hidden="true">
+                {n < current ? (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                ) : (
+                  n
+                )}
+              </span>
+              <span className="flowbar__label">{step.label}</span>
+              {n === current && fill && (
+                <span className="flowbar__fill" aria-hidden="true">
+                  <i style={{ width: `${Math.round(Math.max(0.06, fill.ratio) * 100)}%` }} />
+                </span>
+              )}
+            </>
+          );
+          return (
+            <li key={step.label} className={`flowbar__step ${state}`} aria-current={n === current ? 'step' : undefined}>
+              {linkable ? (
+                <Link href={step.href} className="flowbar__link">
+                  {body}
+                </Link>
+              ) : (
+                <span className="flowbar__link">{body}</span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }
 

@@ -11,7 +11,7 @@ import MoneyOrder from './MoneyOrder.js';
 import { SiteHeader, FlowSteps, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
 import { useFlowMode } from '../../lib/flowMode.js';
 import ReportDialog from '../report/ReportDialog.js';
-import TimelineStory from './TimelineStory.js';
+import TimelineTrack from './TimelineTrack.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
 const REPORT_CLOSED_KEY = 'finpath-report-closed';
@@ -105,8 +105,9 @@ export default function FinancialMap() {
         </div>
       </SiteHeader>
       <ReportDialog open={reportOpen} plan={plan} demo={demo} onClose={closeReport} />
+      {flow !== 'classic' && <FlowSteps current={4} />}
       <main className="map-page">
-        {flow === 'classic' ? <StepProgress current={2} /> : <FlowSteps current={4} />}
+        {flow === 'classic' && <StepProgress current={2} />}
         <MapIntro demo={demo} />
         {flow === 'classic' ? (
           <>
@@ -122,13 +123,14 @@ export default function FinancialMap() {
           </>
         ) : roadmap.steps.length ? (
           <>
-            <TimelineStory
+            <TimelineTrack
               roadmap={roadmap}
               done={done}
               onToggleDone={toggleDone}
               onOpenReport={openReport}
               policyDate={policyData.checked_at}
             />
+            <DemoNote demo={demo} />
             <details className="map-fold">
               <summary>
                 돈의 순서 <span>매달 모으는 돈을 어디에 먼저 넣을지 (자금 배분)</span>
@@ -179,12 +181,17 @@ function MapIntro({ demo }) {
         <h1>나의 타임라인</h1>
         <p>지금부터 무엇을 어떤 순서로 하면 되는지 내 숫자로 정리했어요.</p>
       </div>
-      {demo && (
-        <p className="info-note">
-          지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">내 돈 상황을 입력</Link>하면 내 숫자로 바뀌어요.
-        </p>
-      )}
     </div>
+  );
+}
+
+// 시연 인물 안내: 타임라인이 제목 바로 아래 오도록 지도 아래에 둬요.
+function DemoNote({ demo }) {
+  if (!demo) return null;
+  return (
+    <p className="info-note map-demo-note">
+      지금은 시연 인물(정하은) 기준이에요. <Link href="/goal">내 돈 상황을 입력</Link>하면 내 숫자로 바뀌어요.
+    </p>
   );
 }
 
