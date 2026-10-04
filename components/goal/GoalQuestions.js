@@ -10,6 +10,7 @@ import {
   stageOf,
   optionsFor,
 } from '../../lib/goal/questions.js';
+import { sigunguOf } from '../../lib/goal/regions.js';
 
 const THIS_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 6 }, (_, i) => THIS_YEAR + i);
@@ -68,7 +69,12 @@ export default function GoalQuestions() {
   };
 
   return (
-    <Page persistent={persistent} step={question ? stageOf(question) : 3} classic={classic}>
+    <Page
+      persistent={persistent}
+      step={question ? stageOf(question) : 3}
+      fill={question && !editingId ? stageFill(answers, stageOf(question)) : null}
+      classic={classic}
+    >
       {question ? (
         <QuestionView
           key={question.id}
@@ -87,7 +93,14 @@ export default function GoalQuestions() {
   );
 }
 
-function Page({ persistent, step = 1, classic = false, children }) {
+// 지금 단계 안에서 몇 개를 답했는지 (진행 표시를 하나로 합치려고 단계 막대에 채워서 보여줘요)
+function stageFill(answers, stage) {
+  const inStage = visibleQuestions(answers).filter(q => stageOf(q) === stage);
+  const done = inStage.filter(q => answers[q.id] !== undefined).length;
+  return { ratio: inStage.length ? done / inStage.length : 0, done, total: inStage.length };
+}
+
+function Page({ persistent, step = 1, fill = null, classic = false, children }) {
   return (
     <>
       <SiteHeader>
@@ -95,7 +108,7 @@ function Page({ persistent, step = 1, classic = false, children }) {
       </SiteHeader>
       <main className="flow-page">
         <div className="flow-column">
-          {!classic && <FlowSteps current={step} />}
+          {!classic && <FlowSteps current={step} fill={fill} />}
           {children}
           <PrivacyNote persistent={persistent} />
         </div>
@@ -116,7 +129,7 @@ function QuestionView({ question, answers, current, onSubmit, onBack, editing, c
 
   return (
     <section className="question" aria-labelledby="goal-question-title">
-      {!editing && (
+      {classic && !editing && (
         <div className="question__progress">
           <div className="segments" aria-hidden="true">
             {Array.from({ length: total }, (_, i) => (
@@ -129,14 +142,7 @@ function QuestionView({ question, answers, current, onSubmit, onBack, editing, c
         </div>
       )}
       <div className="flow-heading">
-        {classic ? (
-          question.group !== 'common' && <p className="goal-group">{question.group}</p>
-        ) : (
-          <p className="goal-group">
-            {'①②③'[stageOf(question) - 1]} {STAGES[stageOf(question) - 1].label}
-            {question.group !== 'common' && ` · ${question.group}`}
-          </p>
-        )}
+        {question.group !== 'common' && <p className="goal-group">{question.group}</p>}
         <h1 id="goal-question-title" ref={titleRef} tabIndex={-1}>
           {question.title}
         </h1>
@@ -236,7 +242,54 @@ function draftToValue(question, draft) {
   }
 }
 
-function NumberField({ id, label, unit, value, onChange }) {
+// 입력한 숫자를 바로 읽어 줘요. (예: 1500 → 1,500만 원 = 15,000,000원, 36개월 → 3년)
+export function readAmount(value, unit) {
+  const n = parseAmount(value);
+  if (!Number.isFinite(n)) return null;
+  if (unit === '만 원') {
+    if (n === 0) return '0원';
+    const eok = Math.floor(n / 10000);
+    const rest = n % 10000;
+    const words = eok
+      ? `${eok.toLocaleString()}억${rest ? ` ${rest.toLocaleString()}만` : ''} 원`
+      : `${n.toLocaleString()}만 원`;
+    return `${words} = ${(n * 10000).toLocaleString()}원`;
+  }
+  if (unit === '개월' && n >= 12) return `${Math.floor(n / 12)}년${n % 12 ? ` ${n % 12}개월` : ''}`;
+  return null;
+}
+
+function QuickPicks({ values, unit, onPick, label }) {
+  if (!values?.length) return null;
+  return (
+    <div className="goal-quick" role="group" aria-label={label ? `${label} 빠른 선택` : '빠른 선택'}>
+      {values.map(v => (
+        <button key={v} type="button" className="goal-quick__btn" onClick={() => onPick(String(v))}>
+          {unit === '만 원' ? readShort(v) : `${v}${unit}`}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const readShort = n => (n >= 10000 && n % 10000 === 0 ? `${n / 10000}억` : `${n.toLocaleString()}만`);
+
+function NumberField({ id, label, unit, value, onChange, quick }) {
+  const reading = readAmount(value, unit);
+  return (
+    <div className="goal-field-wrap">
+      <NumberInput id={id} label={label} unit={unit} value={value} onChange={onChange} />
+      {reading && (
+        <p className="goal-reading" aria-live="polite">
+          {reading}
+        </p>
+      )}
+      <QuickPicks values={quick} unit={unit} onPick={onChange} label={label} />
+    </div>
+  );
+}
+
+function NumberInput({ id, label, unit, value, onChange }) {
   return (
     <label className="goal-field" htmlFor={id}>
       {label && <span className="goal-field__label">{label}</span>}
@@ -255,11 +308,26 @@ function NumberField({ id, label, unit, value, onChange }) {
   );
 }
 
+function OptionText({ option }) {
+  return (
+    <span className="option__text">
+      {option.desc ? (
+        <>
+          <strong>{option.label}</strong>
+          <span>{option.desc}</span>
+        </>
+      ) : (
+        option.label
+      )}
+    </span>
+  );
+}
+
 function Input({ question, answers, draft, setDraft, onPick }) {
   const q = question;
   switch (q.type) {
     case 'number':
-      return <NumberField id={`f-${q.id}`} unit={q.unit} value={draft} onChange={setDraft} />;
+      return <NumberField id={`f-${q.id}`} unit={q.unit} value={draft} onChange={setDraft} quick={q.quick} />;
     case 'numbers':
       return (
         <div className="goal-fields">
@@ -334,6 +402,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
             unit="만 원"
             value={draft.amount}
             onChange={v => setDraft(d => ({ ...d, amount: v }))}
+            quick={q.quick?.amount}
           />
           <NumberField
             id="f-goal-months"
@@ -341,6 +410,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
             unit="개월"
             value={draft.months}
             onChange={v => setDraft(d => ({ ...d, months: v }))}
+            quick={q.quick?.months}
           />
         </div>
       );
@@ -349,7 +419,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
         <div className="goal-fields">
           <label className="goal-field" htmlFor="f-sido">
             <span className="goal-field__label">시·도</span>
-            <select id="f-sido" value={draft.sido} onChange={e => setDraft(d => ({ ...d, sido: e.target.value }))}>
+            <select id="f-sido" value={draft.sido} onChange={e => setDraft({ sido: e.target.value, sigungu: '' })}>
               <option value="">골라주세요</option>
               {SIDO.map(s => (
                 <option key={s} value={s}>
@@ -358,18 +428,23 @@ function Input({ question, answers, draft, setDraft, onPick }) {
               ))}
             </select>
           </label>
-          <label className="goal-field" htmlFor="f-sigungu">
-            <span className="goal-field__label">시·군·구 (선택)</span>
-            <span className="goal-field__box">
-              <input
+          {sigunguOf(draft.sido).length > 0 && (
+            <label className="goal-field" htmlFor="f-sigungu">
+              <span className="goal-field__label">시·군·구 (선택)</span>
+              <select
                 id="f-sigungu"
-                type="text"
-                placeholder="예: 마포구"
                 value={draft.sigungu}
                 onChange={e => setDraft(d => ({ ...d, sigungu: e.target.value }))}
-              />
-            </span>
-          </label>
+              >
+                <option value="">아직 안 정했어요</option>
+                {sigunguOf(draft.sido).map(name => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       );
     case 'choice':
@@ -378,7 +453,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
           {optionsFor(q, answers).map(o => (
             <button key={o.value} type="button" className="option" onClick={() => onPick(o.value)}>
               <span className="option__dot" aria-hidden="true" />
-              <span>{o.label}</span>
+              <OptionText option={o} />
             </button>
           ))}
         </div>
@@ -399,7 +474,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
                 onClick={() => setDraft(d => (on ? d.filter(v => v !== o.value) : [...d, o.value]))}
               >
                 <span className="option__box" aria-hidden="true" />
-                <span className="option__text">{o.label}</span>
+                <OptionText option={o} />
               </button>
             );
           })}

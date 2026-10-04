@@ -2855,3 +2855,39 @@ select:focus-visible,
   font-size: 13px;
   color: var(--text-2);
 }
+
+/* ── 입력 화면 다듬기: 빠른 선택, 읽어 주기, 선택지 설명 ── */
+.goal-field-wrap {
+  display: grid;
+  gap: 8px;
+}
+.goal-reading {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.goal-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.goal-quick__btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+  cursor: pointer;
+}
+.goal-quick__btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.goal-quick__btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.flow-steps__count {
+  font-weight: 400;
+  color: var(--muted);
+}
