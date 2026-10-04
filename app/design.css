@@ -1165,3 +1165,42 @@ html {
     scroll-padding-bottom: 120px;
   }
 }
+
+/* 입력을 마친 화면: 다음 할 일 하나 + 접힌 답 목록 */
+.review--done .flow-nav--done {
+  justify-content: flex-start;
+}
+.goal-review {
+  border-top: 1px solid var(--ds-line);
+  padding-top: 16px;
+}
+.goal-review > summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ds-ink-2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.goal-review > summary::-webkit-details-marker {
+  display: none;
+}
+.goal-review > summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border: solid var(--ds-ink-3);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.2s;
+}
+.goal-review[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.goal-review[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

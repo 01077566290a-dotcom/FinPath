@@ -325,9 +325,11 @@ function OptionText({ option }) {
 
 function Input({ question, answers, draft, setDraft, onPick }) {
   const q = question;
+  // 빠른 선택은 앞의 답(목적, 집 형태)에 따라 바뀔 수 있어요.
+  const quick = typeof q.quick === 'function' ? q.quick(answers) : q.quick;
   switch (q.type) {
     case 'number':
-      return <NumberField id={`f-${q.id}`} unit={q.unit} value={draft} onChange={setDraft} quick={q.quick} />;
+      return <NumberField id={`f-${q.id}`} unit={q.unit} value={draft} onChange={setDraft} quick={quick} />;
     case 'numbers':
       return (
         <div className="goal-fields">
@@ -402,7 +404,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
             unit="만 원"
             value={draft.amount}
             onChange={v => setDraft(d => ({ ...d, amount: v }))}
-            quick={q.quick?.amount}
+            quick={quick?.amount}
           />
           <NumberField
             id="f-goal-months"
@@ -410,7 +412,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
             unit="개월"
             value={draft.months}
             onChange={v => setDraft(d => ({ ...d, months: v }))}
-            quick={q.quick?.months}
+            quick={quick?.months}
           />
         </div>
       );
@@ -571,37 +573,17 @@ function SummaryRows({ questions, answers, onEdit }) {
   );
 }
 
-function Summary({ answers, onEdit, onReset, classic }) {
+// 이전 흐름의 확인 화면 (답 목록 + 정책 목록)
+function ClassicSummary({ answers, onEdit, onReset }) {
   const profile = buildProfile(answers);
   const policies = profile ? filterPolicies(profile, policyData) : [];
   return (
     <section className="question review" aria-labelledby="goal-summary-title">
       <div className="flow-heading">
         <h1 id="goal-summary-title">필요한 정보를 모두 받았어요</h1>
-        <p>
-          {classic
-            ? '틀린 답이 있으면 고칠 수 있어요. 고치면 리포트와 타임라인 숫자도 다시 계산돼요.'
-            : '①~③에서 답한 내용이에요. 틀린 답은 여기서 고치면 ④ 타임라인과 ⑤ 리포트 숫자가 함께 다시 계산돼요.'}
-        </p>
+        <p>틀린 답이 있으면 고칠 수 있어요. 고치면 리포트와 타임라인 숫자도 다시 계산돼요.</p>
       </div>
-
-      {classic ? (
-        <SummaryRows questions={visibleQuestions(answers)} answers={answers} onEdit={onEdit} />
-      ) : (
-        STAGES.map(stage => {
-          const rows = visibleQuestions(answers).filter(q => stageOf(q) === stage.n);
-          if (!rows.length) return null;
-          return (
-            <div key={stage.n} className="goal-summary-stage">
-              <h2 className="goal-subtitle">
-                {'①②③'[stage.n - 1]} {stage.label}
-              </h2>
-              <SummaryRows questions={rows} answers={answers} onEdit={onEdit} />
-            </div>
-          );
-        })
-      )}
-
+      <SummaryRows questions={visibleQuestions(answers)} answers={answers} onEdit={onEdit} />
       <h2 className="goal-subtitle">나에게 맞을 수 있는 정책 {policies.length}개</h2>
       {policies.length === 0 ? (
         <p className="info-note">지금 입력한 목적·지역·나이에 맞는 정책을 찾지 못했어요.</p>
@@ -625,31 +607,61 @@ function Summary({ answers, onEdit, onReset, classic }) {
         {policyData.checked_at}
         {policyData.fetched_at ? `, 보조금24 수집일 ${policyData.fetched_at}` : ''})
       </p>
-
       <div className="flow-nav">
         <button type="button" className="btn btn--ghost" onClick={onReset}>
           처음부터 다시
         </button>
-        {classic ? (
-          <>
-            <Link href="/map" className="btn btn--outline btn--md">
-              타임라인 지도 보기
-            </Link>
-            <Link href="/report" className="btn btn--primary btn--md">
-              내 리포트 보기 <ArrowIcon />
-            </Link>
-          </>
-        ) : (
-          <>
-            <Link href="/report" className="btn btn--outline btn--md">
-              리포트만 보기
-            </Link>
-            <Link href="/map" className="btn btn--primary btn--md">
-              ④ 타임라인 보기 <ArrowIcon />
-            </Link>
-          </>
-        )}
+        <Link href="/map" className="btn btn--outline btn--md">
+          타임라인 지도 보기
+        </Link>
+        <Link href="/report" className="btn btn--primary btn--md">
+          내 리포트 보기 <ArrowIcon />
+        </Link>
       </div>
+    </section>
+  );
+}
+
+// 입력을 마친 화면: 다음 할 일(타임라인 보기) 하나만 크게. 답 목록은 접어 두고, 정책은 타임라인 단계에 붙여 보여줘요.
+function Summary({ answers, onEdit, onReset, classic }) {
+  if (classic) return <ClassicSummary answers={answers} onEdit={onEdit} onReset={onReset} />;
+  const profile = buildProfile(answers);
+  const policies = profile ? filterPolicies(profile, policyData) : [];
+  const rows = visibleQuestions(answers);
+  return (
+    <section className="question review review--done" aria-labelledby="goal-summary-title">
+      <div className="flow-heading">
+        <h1 id="goal-summary-title">다 됐어요. 내 타임라인을 만들었어요</h1>
+        <p>
+          답 {rows.length}개로 실제로 필요한 돈과 모으는 순서를 계산했어요.
+          {policies.length > 0 && ` 나에게 맞을 수 있는 정책 ${policies.length}개는 타임라인 단계마다 붙여 두었어요.`}
+        </p>
+      </div>
+
+      <div className="flow-nav flow-nav--done">
+        <Link href="/map" className="btn btn--primary btn--lg">
+          타임라인 보기 <ArrowIcon />
+        </Link>
+      </div>
+
+      <details className="goal-review">
+        <summary>내 답 확인하고 고치기 ({rows.length}개)</summary>
+        {STAGES.map(stage => {
+          const inStage = rows.filter(q => stageOf(q) === stage.n);
+          if (!inStage.length) return null;
+          return (
+            <div key={stage.n} className="goal-summary-stage">
+              <h2 className="goal-subtitle">
+                {'①②③'[stage.n - 1]} {stage.label}
+              </h2>
+              <SummaryRows questions={inStage} answers={answers} onEdit={onEdit} />
+            </div>
+          );
+        })}
+        <button type="button" className="btn btn--ghost" onClick={onReset}>
+          처음부터 다시
+        </button>
+      </details>
     </section>
   );
 }
