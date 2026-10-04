@@ -68,10 +68,13 @@ test('정하은으로 답하면 시연 문서와 같은 숫자의 프로필이 �
   assert.equal(p.base_month, '2026-10');
 });
 
-test('비상자금은 추가 질문이 없다 (이미 아는 정보로 계산)', () => {
+test('비상자금은 계산에 필요한 추가 질문이 없다 (대비 상황만 선택으로 물음)', () => {
   const answers = answerAll(HAEUN);
-  const groups = visibleQuestions(answers).map(q => q.group);
-  assert.equal(groups.includes('비상자금'), false);
+  const asked = visibleQuestions(answers).filter(q => q.group === '비상자금');
+  assert.deepEqual(
+    asked.map(q => [q.id, Boolean(q.enrich)]),
+    [['emergency_reason', true]],
+  );
 });
 
 test('교통비를 안 쓰면 독립 후 교통비를 묻지 않는다', () => {
@@ -105,7 +108,11 @@ test('월세가 아니면 월세·관리비를 묻지 않고, 대출 예정일 �
   answers = answer(answers, 'housing_type', '전세', { now: NOW }).answers;
   assert.equal(answers.rent, undefined);
   answers = answer(answers, 'loan_plan', '예', { now: NOW }).answers;
-  assert.equal(nextQuestion(answers).id, 'loan_amount');
+  assert.equal(
+    visibleQuestions(answers).some(q => q.id === 'loan_amount'),
+    true,
+  );
+  assert.equal(isComplete(answers), false); // 대출액을 답해야 끝나요
 });
 
 test('기획안 v4 순서: ① 목표와 내 돈 상황 → ② 지역과 목적 → ③ 목적별 상세', () => {
@@ -173,4 +180,41 @@ test('금액 입력 정리', () => {
   assert.equal(parseAmount('1,000만'), 1000);
   assert.equal(parseAmount('250'), 250);
   assert.ok(Number.isNaN(parseAmount('없음')));
+});
+
+test('목적을 더 자세히 묻는 질문(enrich)은 답하면 프로필에 들어가고, 안 해도 프로필은 만들어진다', () => {
+  let answers = answerAll(HAEUN);
+  assert.equal(buildProfile(answers, { now: NOW }).living_now, null);
+  for (const [id, v] of [
+    ['debt_type', '학자금 대출'],
+    ['work_years', '1~3년'],
+    ['living_now', '부모님 집'],
+    ['emergency_reason', '실직·이직'],
+    ['housing_goal', '첫 독립'],
+  ])
+    answers = answer(answers, id, v, { now: NOW }).answers;
+  const p = buildProfile(answers, { now: NOW });
+  assert.equal(p.money.debt.type, '학자금 대출');
+  assert.equal(p.living_now, '부모님 집');
+  assert.equal(p.work_years, '1~3년');
+  assert.deepEqual(p.detail['비상자금'], { reason: '실직·이직' });
+  assert.equal(p.detail['주거'].housing_goal, '첫 독립');
+});
+
+test('내 집 마련을 고르면 집 형태(매매)를 다시 묻지 않고, 바꾸면 다시 묻는다', () => {
+  let answers = answerAll(HAEUN.filter(([id]) => !['housing_type', 'rent'].includes(id)));
+  answers = answer(answers, 'housing_goal', '내 집 마련', { now: NOW }).answers;
+  assert.equal(answers.housing_type, '매매');
+  assert.equal(
+    visibleQuestions(answers).some(q => q.id === 'housing_type'),
+    false,
+  );
+  answers = answer(answers, 'housing_goal', '첫 독립', { now: NOW }).answers;
+  assert.equal(answers.housing_type, undefined);
+});
+
+test('시·군·구는 그 시·도의 목록에 있는 것만 받는다', () => {
+  assert.notEqual(answer({}, 'region', { sido: '부산', sigungu: '마포구' }).error, null);
+  assert.equal(answer({}, 'region', { sido: '부산', sigungu: '해운대구' }).error, null);
+  assert.equal(answer({}, 'region', { sido: '세종', sigungu: null }).error, null);
 });

@@ -62,3 +62,16 @@ test('정책 id는 겹치지 않는다', () => {
   const ids = data.policies.map(p => p.id);
   assert.equal(new Set(ids).size, ids.length);
 });
+
+test('빚이 있으면 "빚 상환"을 안 골라도 빚 관련 지원이 나온다', () => {
+  const debtPolicy = {
+    id: 'x-debt',
+    name: '학자금 대출 이자 지원',
+    purposes: ['빚 상환'],
+    region: { sido: null, sigungu: null },
+    age: { min: 19, max: 39 },
+  };
+  const withDebt = profile({ money: { debt: { remain: 420, monthly: 15 } } });
+  assert.equal(filterPolicies(withDebt, { policies: [debtPolicy] }).length, 1);
+  assert.equal(filterPolicies(profile(), { policies: [debtPolicy] }).length, 0);
+});

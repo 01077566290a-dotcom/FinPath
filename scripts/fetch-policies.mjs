@@ -38,7 +38,8 @@ async function call(path, key, params = {}) {
 }
 
 // 1차로 이름·내용 키워드가 맞는 항목만 고릅니다. (나이 조건은 2차에서 확인)
-const MAYBE = /청년|사회초년|월세|전세|보증금|임대주택|이사|중개보수|반환보증|적금|저축|자산형성|청약통장/;
+const MAYBE =
+  /청년|사회초년|신혼|결혼|혼인|월세|전세|보증금|임차|임대주택|주거비|이사|중개보수|반환보증|적금|저축|자산형성|청약통장|목돈|학자금|채무|신용회복/;
 
 async function main() {
   const key = await loadKey();
@@ -57,7 +58,12 @@ async function main() {
     if (data.length < PER_PAGE) break;
   }
   console.log();
-  const rough = all.filter(item => MAYBE.test(`${item['서비스명']} ${item['서비스목적요약'] ?? ''}`));
+  // 이름·요약뿐 아니라 지원대상·지원내용까지 봐야 놓치는 혜택이 줄어요.
+  const rough = all.filter(item =>
+    MAYBE.test(
+      `${item['서비스명']} ${item['서비스목적요약'] ?? ''} ${item['지원대상'] ?? ''} ${item['지원내용'] ?? ''}`,
+    ),
+  );
   console.log(`키워드 1차 통과 ${rough.length}건`);
 
   // 2) 후보마다 지원조건(나이)을 받아 정책 형식으로 바꾸기
@@ -76,7 +82,14 @@ async function main() {
 
   const out = { fetched_at: new Date().toISOString().slice(0, 10), source: 'gov24', policies };
   await writeFile(OUT, JSON.stringify(out, null, 2) + '\n');
-  console.log(`청년 주거·저축 혜택 ${policies.length}건을 data/policies-gov24.json에 저장했어요.`);
+  const count = key => policies.filter(p => p.purposes.includes(key)).length;
+  console.log(`청년 혜택 ${policies.length}건을 data/policies-gov24.json에 저장했어요.`);
+  console.log(
+    `목적별: 주거 ${count('주거')}, 비상자금 ${count('비상자금')}, 결혼 ${count('결혼')}, 빚 상환 ${count('빚 상환')}`,
+  );
+  console.log(
+    `전국 ${policies.filter(p => !p.region.sido).length}건, 지역 ${policies.filter(p => p.region.sido).length}건`,
+  );
 }
 
 main().catch(error => {

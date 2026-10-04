@@ -48,20 +48,38 @@ export function StepProgress({ current }) {
 
 // 기획안 v4의 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
 const FLOW = ['목표·내 돈', '지역·목적', '상세 정보', '타임라인', '리포트'];
-export function FlowSteps({ current }) {
+// fill: 지금 단계 안에서 답한 비율 ({ ratio, done, total }). 주면 지금 단계 막대를 그만큼만 채우고 "3/7"을 함께 보여줘요.
+export function FlowSteps({ current, fill = null }) {
   return (
     <ol className="stage-progress flow-steps" aria-label="진행 단계">
       {FLOW.map((label, i) => {
         const n = i + 1;
+        const isCurrent = n === current;
+        const partial = isCurrent && fill && fill.total > 0;
+        const pct = partial ? Math.round(Math.max(0.08, fill.ratio) * 100) : null;
         return (
           <li
             key={label}
-            className={n < current ? 'is-past' : n === current ? 'is-current' : ''}
-            aria-current={n === current ? 'step' : undefined}
+            className={n < current ? 'is-past' : isCurrent ? 'is-current' : ''}
+            aria-current={isCurrent ? 'step' : undefined}
           >
-            <span className="stage-progress__bar" aria-hidden="true" />
+            <span
+              className="stage-progress__bar"
+              aria-hidden="true"
+              style={
+                partial
+                  ? { background: `linear-gradient(to right, var(--primary) ${pct}%, var(--track) ${pct}%)` }
+                  : undefined
+              }
+            />
             <span>
               <span className="flow-steps__n">{'①②③④⑤'[i]}</span> {label}
+              {partial && (
+                <span className="flow-steps__count">
+                  {' '}
+                  {Math.min(fill.done + 1, fill.total)}/{fill.total}
+                </span>
+              )}
             </span>
           </li>
         );

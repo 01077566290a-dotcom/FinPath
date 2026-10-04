@@ -190,7 +190,7 @@
       "name": "울주군 신혼부부 주택 매입/전세자금 대출이자 지원",
       "summary": "신혼부부에게 주택 매입·전세자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "울산",
@@ -246,8 +246,8 @@
       "id": "gov24-383000000191",
       "name": "안양시 청년 학자금 대출 연체자 신용회복 지원",
       "summary": "학자금 대출을 제때 상환하지 못하여 신용유의자로 등록된 청년들의 신용회복 지원",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "debt_plan",
+      "purposes": ["빚 상환"],
       "region": {
         "sido": "경기",
         "sigungu": "안양시"
@@ -302,7 +302,7 @@
       "name": "신혼부부· 청년 전·월세 보증금 대출이자 지원",
       "summary": "❍ 전세대출이자 현금 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["월세"],
       "region": {
         "sido": "경기",
@@ -339,7 +339,7 @@
       "name": "신혼부부 주택전세자금 대출이자 지원",
       "summary": "무주택 신혼부부에게 주택전세자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "경기",
@@ -376,8 +376,8 @@
       "id": "gov24-402000000146",
       "name": "청년 학자금대출 장기연체자 학자금상환 지원",
       "summary": "학자금대출 조기상환을 위한 납입금 일부를 지원합니다.",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "debt_plan",
+      "purposes": ["빚 상환"],
       "region": {
         "sido": "경기",
         "sigungu": "군포시"
@@ -394,8 +394,8 @@
       "id": "gov24-402000000147",
       "name": "청년 학자금대출 장기연체자 신용회복 지원",
       "summary": "청년 학자금대출 장기연체자 신용회복을 지원합니다.",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "debt_plan",
+      "purposes": ["빚 상환"],
       "region": {
         "sido": "경기",
         "sigungu": "군포시"
@@ -430,8 +430,8 @@
       "id": "gov24-405000000661",
       "name": "용인시 청년 학자금대출 신용회복 지원",
       "summary": "학자금 대출로 신용회복의 어려움에 있는 청년에게 신용회복조치 및 취업지원 연계 지원",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "debt_plan",
+      "purposes": ["빚 상환"],
       "region": {
         "sido": "경기",
         "sigungu": "용인시"
@@ -542,7 +542,6 @@
       "summary": "주거비(월세) 월 최대 20만원 지원(최대 3년간)",
       "step": "housing_budget",
       "purposes": ["주거"],
-      "housing_types": ["월세"],
       "region": {
         "sido": "충북",
         "sigungu": "보은군"
@@ -666,47 +665,11 @@
       "source": "gov24"
     },
     {
-      "id": "gov24-452000000321",
-      "name": "청년내일카드",
-      "summary": "중소․중견기업 등에 취업한 만 18~39세 아산시 청년들의 복지혜택을 지원",
-      "step": "saving_method",
-      "purposes": ["비상자금", "주거", "결혼"],
-      "region": {
-        "sido": "충남",
-        "sigungu": "아산시"
-      },
-      "age": {
-        "min": 18,
-        "max": 39
-      },
-      "condition_note": "- 청년내일 (열정)카드 참여 및 지급 자격: 관내 중소․중견기업에 취업한 자로 아래 각호 모두에 해당하는 자 ① 참여신청일 기준 만 18~39세인 자 ② 인정신청일 기준 (신청일로부터 6개월 이내) 아산시에 주소를 둔 자 ③ 근속기간이 6개월 이상인 자 (다만, 입사일로부터 5개월 …",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/452000000321",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-452000000324",
-      "name": "아산시 청년생활물품 대여 서비스",
-      "summary": "청년의 생활안정 및 지역 정착을 위해 생활물품 무료 대여",
-      "step": "move_in_cost",
-      "purposes": ["주거"],
-      "region": {
-        "sido": "충남",
-        "sigungu": "아산시"
-      },
-      "age": {
-        "min": 18,
-        "max": 39
-      },
-      "condition_note": "- 아산시에 주소를 둔 18~39세 청년 - 아산시 관내 대학(교) 재학생 및 졸업생",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/452000000324",
-      "source": "gov24"
-    },
-    {
       "id": "gov24-453000000172",
       "name": "청년 신혼부부 주택 전세자금 대출이자 지원",
       "summary": "지원대상, 소득기준, 주택기준에 부합하는 신혼가구에 주택 전세자금 대출잔액의 2.5% 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "충남",
@@ -743,7 +706,7 @@
       "id": "gov24-458000000125",
       "name": "청년 행복주거비 지원",
       "summary": "무주택 세대주 청년에게 가구원수에 따라 월15~29만원까지 지원(2년간)",
-      "step": "housing_deposit",
+      "step": "housing_budget",
       "purposes": ["주거"],
       "region": {
         "sido": "충남",
@@ -762,7 +725,7 @@
       "name": "신혼부부 주택자금(구매,전세) 대출이자 지원",
       "summary": "주택 구매 또는전세자금 대출을 받은 18세이상 45세 이하 청년 신혼부부에게 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "충남",
@@ -799,7 +762,7 @@
       "name": "익산시 신혼부부 청년 주택 전세보증금 대출이자 지원사업",
       "summary": "대출 이자 최대 3.0% 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "전북",
@@ -818,7 +781,7 @@
       "name": "익산시 신혼부부 청년 주택구입 대출이자 지원사업",
       "summary": "대출잔액의 3.0% 이내 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "전북",
         "sigungu": "익산시"
@@ -835,8 +798,8 @@
       "id": "gov24-469000000120",
       "name": "학자금대출 장기연체자 신용회복 지원",
       "summary": "청년에게 한국장학재단과의 채무분할상환 약정 체결시 초입금 지원, 성실상환자 조기상환 지원",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "debt_plan",
+      "purposes": ["빚 상환"],
       "region": {
         "sido": "전북",
         "sigungu": "정읍시"
@@ -854,7 +817,7 @@
       "name": "신혼부부 및 청년 주택자금 대출이자 지원",
       "summary": "관내 거주 청년 및 신혼부부 주택자금 대출이자 지원(최대300만원/최장10년)",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "전북",
         "sigungu": "정읍시"
@@ -872,7 +835,7 @@
       "name": "남원시 신혼부부 및 청년 주택 전세자금 대출이자 지원",
       "summary": "무주택 신혼부부 및 청년에게 대출잔액의 최대 3% 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "전북",
@@ -891,7 +854,7 @@
       "name": "청년 및 신혼부부 전세자금 대출이자 지원",
       "summary": "무주택 청년 및 신혼부부에게 주택전세자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "전북",
@@ -912,8 +875,8 @@
       "step": "housing_deposit",
       "purposes": ["주거"],
       "region": {
-        "sido": null,
-        "sigungu": null
+        "sido": "전남",
+        "sigungu": "광양시"
       },
       "age": {
         "min": 19,
@@ -931,7 +894,7 @@
       "purposes": ["주거"],
       "housing_types": ["전세"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -949,7 +912,7 @@
       "step": "housing_deposit",
       "purposes": ["주거"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -967,7 +930,7 @@
       "step": "saving_method",
       "purposes": ["비상자금", "주거", "결혼"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -979,33 +942,15 @@
       "source": "gov24"
     },
     {
-      "id": "gov24-489000000118",
-      "name": "출산축하용품(아이사랑마더박스) 지원",
-      "summary": "임산부 및 영유아를 위해 출산축하기념 마더박스 지원",
-      "step": "move_in_cost",
-      "purposes": ["주거"],
-      "region": {
-        "sido": null,
-        "sigungu": null
-      },
-      "age": {
-        "min": 18,
-        "max": 44
-      },
-      "condition_note": "○ 보성군에 주민등록을 두고 거주하는 임산부와 영유아 중 보건소 등록자",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/489000000118",
-      "source": "gov24"
-    },
-    {
       "id": "gov24-490000000280",
       "name": "화순군 청년하우스 입주 신청",
       "summary": "18세 ~ 49세인 무주택이며 취.창업 준비 청년에게 월세 1만원인 청년하우스 공급",
-      "step": "housing_deposit",
+      "step": "housing_budget",
       "purposes": ["주거"],
       "housing_types": ["월세"],
       "region": {
-        "sido": null,
-        "sigungu": null
+        "sido": "전남",
+        "sigungu": "화순군"
       },
       "age": {
         "min": 18,
@@ -1019,11 +964,11 @@
       "id": "gov24-492000000110",
       "name": "강진품애 청년 주거비 지원",
       "summary": "요건을 충족하는 무주택 청년에게 전세이자 또는 월세 지원",
-      "step": "housing_deposit",
+      "step": "housing_budget",
       "purposes": ["주거"],
       "region": {
-        "sido": null,
-        "sigungu": null
+        "sido": "전남",
+        "sigungu": "강진군"
       },
       "age": {
         "min": 19,
@@ -1040,8 +985,8 @@
       "step": "saving_method",
       "purposes": ["비상자금", "주거", "결혼"],
       "region": {
-        "sido": null,
-        "sigungu": null
+        "sido": "전남",
+        "sigungu": "영암군"
       },
       "age": {
         "min": 19,
@@ -1059,8 +1004,8 @@
       "purposes": ["주거"],
       "housing_types": ["월세"],
       "region": {
-        "sido": null,
-        "sigungu": null
+        "sido": "전남",
+        "sigungu": "영암군"
       },
       "age": {
         "min": 19,
@@ -1077,7 +1022,7 @@
       "step": "saving_method",
       "purposes": ["비상자금", "주거", "결혼"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -1096,7 +1041,7 @@
       "purposes": ["주거"],
       "housing_types": ["전세"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -1130,7 +1075,7 @@
       "name": "신혼부부 주택자금 대출이자 지원",
       "summary": "결혼 2년이내 부부에게 주택구입 또는 전세자금 대출이자 지원(100만원 한도)",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "경북",
         "sigungu": "문경시"
@@ -1141,42 +1086,6 @@
       },
       "condition_note": "○ 1년이상 문경시에 주소를 둔 결혼 2년이내 부부",
       "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/512000000112",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-515000000138",
-      "name": "아이사랑육아용품대여사업",
-      "summary": "출산육아용품 무료대여소 운영 연중, 월~금 (9:00~18:00) 보건소 아이들행복꿈터 내",
-      "step": "move_in_cost",
-      "purposes": ["주거"],
-      "region": {
-        "sido": "경북",
-        "sigungu": "의성군"
-      },
-      "age": {
-        "min": 18,
-        "max": 44
-      },
-      "condition_note": "관내 임산부 및 영유아 가구",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/515000000138",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-515000000168",
-      "name": "청년근로자 사랑채움 사업",
-      "summary": "2년 만기 시 청년근로자 960만원+이자의 적립금 수령",
-      "step": "saving_method",
-      "purposes": ["비상자금", "주거", "결혼"],
-      "region": {
-        "sido": "경북",
-        "sigungu": "의성군"
-      },
-      "age": {
-        "min": 19,
-        "max": 39
-      },
-      "condition_note": "관내 중소·중견기업에 주30시간 이상 근무하고, 3개월 이상 근무중인 만 19세~39세 미혼 청년 임금이 2026년 기준 중위소득 150% 이하인 자",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/515000000168",
       "source": "gov24"
     },
     {
@@ -1221,7 +1130,7 @@
       "name": "청년 및 신혼부부 주거자금 대출이자 지원",
       "summary": "주거자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "경남",
         "sigungu": "창녕군"
@@ -1239,7 +1148,7 @@
       "name": "청년 및 신혼부부 주거자금 대출이자 지원",
       "summary": "청년 및 신혼부부에게 주거자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "경남",
         "sigungu": "남해군"
@@ -1294,7 +1203,7 @@
       "name": "신혼부부 전월세자금 대출이자 지원",
       "summary": "무주택 신혼부부에게 전월세자금 대출이자 일부 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["월세"],
       "region": {
         "sido": "경기",
@@ -1330,8 +1239,8 @@
       "id": "gov24-560000000143",
       "name": "포천시 청년·신혼부부 공공임대주택 주거비 지원(임대보증금)",
       "summary": "관내 공공임대주택(송우파인빌, 포천헤리센트)에 거주하는 청년·신혼부부에게 주거비 지원",
-      "step": "housing_search",
-      "purposes": ["주거"],
+      "step": "housing_deposit",
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "경기",
         "sigungu": "포천시"
@@ -1348,8 +1257,8 @@
       "id": "gov24-560000000144",
       "name": "포천시 청년·신혼부부 공공임대주택 주거비 지원(월 임대료)",
       "summary": "관내 공공임대주택(송우파인빌, 포애뜰)에 거주하는 청년·신혼부부에게 주거비 지원",
-      "step": "housing_search",
-      "purposes": ["주거"],
+      "step": "housing_deposit",
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "경기",
         "sigungu": "포천시"
@@ -1386,7 +1295,7 @@
       "name": "무주택 신혼부부 전세자금 대출이자 지원",
       "summary": "○ 기준중위소득 180%이하 무주택 신혼부부 전세자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "경남",
@@ -1498,7 +1407,7 @@
       "name": "신혼부부 주택(매입,전세)자금 대출이자 지원",
       "summary": "무주택(전세) 또는 1주택(매입) 신혼부부에게 주택자금 대출이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "housing_types": ["전세"],
       "region": {
         "sido": "충북",
@@ -1535,11 +1444,11 @@
       "id": "gov24-587500000001",
       "name": "영암형 공공주택 계약연장",
       "summary": "청년 및 신혼부부 등을 위한 영암형 공공주택 공급",
-      "step": "housing_search",
-      "purposes": ["주거"],
+      "step": "housing_deposit",
+      "purposes": ["주거", "결혼"],
       "region": {
-        "sido": null,
-        "sigungu": null
+        "sido": "전남",
+        "sigungu": "영암군"
       },
       "age": {
         "min": 19,
@@ -1602,24 +1511,6 @@
       },
       "condition_note": "○ 공고일 기준(’25. 5. 26.) 다음 ① ∼ ⑤에 모두 해당하는 경우 신청 가능 ① 서울시 거주자 ※주민등록번호 부여자만 신청 가능(재외국인 및 재외국민 신청불가) ② 만 18세 ~ 만 34세 청년 ※ 출생년월일이 1990. 1. 1. ~ 2007. 12. 31.인 자 ※ 제대…",
       "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/611000019619",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-611000019633",
-      "name": "중증장애인 자산형성지원(이룸통장)",
-      "summary": "청년 중증장애인(만 15세~39세)의 자산형성 지원",
-      "step": "saving_method",
-      "purposes": ["비상자금", "주거", "결혼"],
-      "region": {
-        "sido": "서울",
-        "sigungu": null
-      },
-      "age": {
-        "min": 15,
-        "max": 39
-      },
-      "condition_note": "① 공고일 기준 서울시 거주자 ② 공고일이 속한 연도에 만 15세 ~ 39세 ③「장애인복지법」에 의한 장애의 정도가 심한 장애인 ④ 소득인정액이 기준중위소득 100% 이하인 가구",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/611000019633",
       "source": "gov24"
     },
     {
@@ -1829,7 +1720,7 @@
       "step": "saving_method",
       "purposes": ["비상자금", "주거", "결혼"],
       "region": {
-        "sido": null,
+        "sido": "광주",
         "sigungu": null
       },
       "age": {
@@ -1847,7 +1738,7 @@
       "step": "housing_deposit",
       "purposes": ["주거"],
       "region": {
-        "sido": null,
+        "sido": "광주",
         "sigungu": null
       },
       "age": {
@@ -1898,8 +1789,8 @@
       "id": "gov24-630000000665",
       "name": "대전광역시 청년부부 결혼장려금 지원",
       "summary": "결혼 장려 시책",
-      "step": "saving_method",
-      "purposes": ["비상자금", "주거", "결혼"],
+      "step": "wedding_plan",
+      "purposes": ["결혼"],
       "region": {
         "sido": "대전",
         "sigungu": null
@@ -1953,7 +1844,7 @@
       "id": "gov24-631000000132",
       "name": "울산 청년가구 주거비 지원사업 지원 신청",
       "summary": "월 임차료 10만원 실비 지원, 임차보증금 이자 5만원 실비 지원",
-      "step": "housing_deposit",
+      "step": "housing_budget",
       "purposes": ["주거"],
       "region": {
         "sido": "울산",
@@ -1987,24 +1878,6 @@
       "source": "gov24"
     },
     {
-      "id": "gov24-641000000695",
-      "name": "경기도 장애인 누림 통장",
-      "summary": "19~23세 정도가 심한 장애인의 자산형성 지원을 통한 자립기반 마련",
-      "step": "saving_method",
-      "purposes": ["비상자금", "주거", "결혼"],
-      "region": {
-        "sido": "경기",
-        "sigungu": null
-      },
-      "age": {
-        "min": 19,
-        "max": 23
-      },
-      "condition_note": "○ 19세~23세 정도가 심한 장애인(2007~2003년생)",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/641000000695",
-      "source": "gov24"
-    },
-    {
       "id": "gov24-641000000697",
       "name": "경기도 가정 밖 청소년 자립두배통장",
       "summary": "청소년 저축액(월 1~10만원 자유저축)의 2배를 도비로 추가 적립(월 2~20만원)",
@@ -2026,8 +1899,8 @@
       "id": "gov24-641000000737",
       "name": "경기청년 기회사다리 금융지원",
       "summary": "저금리 마이너스 대출통장(대출한도 최초 3백만원, 연장신청(1년후) 500만원 한도)",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "saving_method",
+      "purposes": ["비상자금", "주거", "결혼"],
       "region": {
         "sido": "경기",
         "sigungu": null
@@ -2102,7 +1975,7 @@
       "step": "saving_method",
       "purposes": ["비상자금", "주거", "결혼"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -2136,7 +2009,7 @@
       "name": "경상북도 신혼부부 임차보증금 이자지원",
       "summary": "신혼부부에게 주택 임차보증금 대출 이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "경북",
         "sigungu": null
@@ -2205,29 +2078,11 @@
       "source": "gov24"
     },
     {
-      "id": "gov24-648000001156",
-      "name": "자립준비청년 자립정착금 지원",
-      "summary": "자립준비청년 보호종료 시 15,000천원 일시금 지급",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
-      "region": {
-        "sido": "경남",
-        "sigungu": null
-      },
-      "age": {
-        "min": 18,
-        "max": 18
-      },
-      "condition_note": "○ 18세 이상의 아동복지시설(양육시설, 그룹홈 등) 퇴소, 가정위탁 보호종료아동 - 자립정착금 지급시 사용계획 확인 및 아동명의 계좌로 입금 조치 - 의무자립교육을 수료한 자에 한하여 자립정착금 지급",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/648000001156",
-      "source": "gov24"
-    },
-    {
       "id": "gov24-650000000269",
       "name": "주거비 지원(신혼부부 전세이자 지원, 둘째자녀 주거임차비, 사회초년생 연월세 이자 지원)",
       "summary": "무주택 가구 등에 주거임차비, 전세자금 대출이자 등 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "제주",
         "sigungu": null
@@ -2274,42 +2129,6 @@
       },
       "condition_note": "○ (지원대상) 2026년 1월 1일 이후 제주특별자치도에 전입 또는 도내에서 이사 후 전입신고 완료한 19세~39세 청년 ※ 외국인, 재외국민 등은 지원대상 아님 ○ (지원요건) - (소득) 가구당 기준 중위소득 180% 이하 - (재산) 신청자 본인 무주택자 - (나이) 2026년…",
       "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/650000001086",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-650000001116",
-      "name": "청년농업인 영농정착지원",
-      "summary": "- 영농정착 지원금 지급: 영농경력에 따라 차등 지급",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
-      "region": {
-        "sido": "제주",
-        "sigungu": null
-      },
-      "age": {
-        "min": 18,
-        "max": 39
-      },
-      "condition_note": "ㅇ (사업 대상) 독립경영 3년 이하 또는 독립영농 예정자 - (연령 기준) 18세~39세 - (소득 기준) 건강보험료 납부 기준으로 판단 - (기타 조건) 병역(병역필 또는 면제자), 거주시(사업신청 시군구에 거주)",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/650000001116",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-650000001131",
-      "name": "빛나는 제주 청년희망 대출 이차보전 지원",
-      "summary": "이차보전: 신용등급 1~3등급 3.5%, 신용등급 4~9등급 4.5%",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
-      "region": {
-        "sido": "제주",
-        "sigungu": null
-      },
-      "age": {
-        "min": 19,
-        "max": 39
-      },
-      "condition_note": "ㅇ 지원대상 - 연소득 5,000만원 이하, 재직기간 1개월 이상인 만19 ~ 39세 청년 - 대출 신청일 기준 제주특별자치도에 주민등록상 주소지를 두고 있으면서, 신청일 이전까지 제주특별자치도에 주민등록상 주소지를 두고 있었던 기간을 모두 합산하여 총 36개월 이상인 자",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/650000001131",
       "source": "gov24"
     },
     {
@@ -2371,7 +2190,7 @@
       "name": "전북특별자치도 신혼부부 및 청년 임대보증금 지원사업",
       "summary": "가구 당 임대보증금 최대 5,000만 원 이내 무이자 지원",
       "step": "housing_deposit",
-      "purposes": ["주거"],
+      "purposes": ["주거", "결혼"],
       "region": {
         "sido": "전북",
         "sigungu": null
@@ -2440,42 +2259,6 @@
       "source": "gov24"
     },
     {
-      "id": "gov24-B55370100009",
-      "name": "햇살론유스",
-      "summary": "제도권 금융 이용이 어려운 대학생·청년 대상으로 대출 지원",
-      "step": "contract_check",
-      "purposes": ["주거"],
-      "region": {
-        "sido": null,
-        "sigungu": null
-      },
-      "age": {
-        "min": 19,
-        "max": 34
-      },
-      "condition_note": "○ 보증신청일 현재 연령이 만 19세 이상~ 만 34세 이하이면서 연소득이 35백만원 이하인 청년 - 취업준비생(대학생, 미취업청년 등) - 사회초년생(중소기업에 재직한 지 1년 이하인 자) - 청년사업자(창업 1년 이내 개인사업자) ※ 취업준비생은 직접보증만 가능",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/B55370100009",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-B55370100042",
-      "name": "미소금융 청년 미래이음 대출",
-      "summary": "저소득·저신용 계층대상 무담보·무보증 대출 지원",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
-      "region": {
-        "sido": null,
-        "sigungu": null
-      },
-      "age": {
-        "min": 19,
-        "max": 34
-      },
-      "condition_note": "○ 아래의 한가지 기준을 충족하는 19세 이상 34세 이하 청년 - 차상위계층 이하인자 - 개인신용평점이 하위 100분의 20에 해당하는 자 - 근로장려금 신청자격 요건에 해당하는 자",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/B55370100042",
-      "source": "gov24"
-    },
-    {
       "id": "gov24-B55370100044",
       "name": "청년미래적금",
       "summary": "청년층의 기초자산 형성을 지원하는 정책형 적금상품",
@@ -2491,24 +2274,6 @@
       },
       "condition_note": "○ 가입대상 : 개인소득 및 가구소득 기준을 모두 충족하는 19~34세 청년 - (개인소득) 총급여 7,500만원(종합소득 6,300만원) 이하 또는 연매출 3억원 이하 - (가구소득) 기준중위소득 200% 이하",
       "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/B55370100044",
-      "source": "gov24"
-    },
-    {
-      "id": "gov24-B55472900003",
-      "name": "스마트팜 청년창업 보육센터",
-      "summary": "실습 중심의 장기 교육(총 20개월) 과정을 운영",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
-      "region": {
-        "sido": null,
-        "sigungu": null
-      },
-      "age": {
-        "min": 18,
-        "max": 39
-      },
-      "condition_note": "○ 전공에 관계없이 스마트팜 영농 기술을 배우고자 희망하는 청년 - 사업 시행 년도 1월 1일 기준 18세 이상 ~ 39세 이하(주민등록 상 ’86. 1. 2. ~ ’08. 1. 1. 출생자)의 대한민국 국적 소지자 * 재학생 또는 취업자라도 20개월 교육 과정 의무교육시간 이수 가능…",
-      "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/B55472900003",
       "source": "gov24"
     },
     {
@@ -2551,11 +2316,10 @@
       "id": "gov24-O00027400003",
       "name": "전남개발공사 시지역(무안,광양) 만원주택 공급",
       "summary": "지방소멸대응 및 청년과 신혼부부의 주거비 부담 완화를 통한 주거안정 및 지역 정착 지원",
-      "step": "housing_search",
-      "purposes": ["주거"],
-      "housing_types": ["월세"],
+      "step": "wedding_plan",
+      "purposes": ["결혼"],
       "region": {
-        "sido": null,
+        "sido": "전남",
         "sigungu": null
       },
       "age": {
@@ -2570,10 +2334,10 @@
       "id": "gov24-O00388400004",
       "name": "강원특별자치도 청년·대학생 학자금대출 이자지원",
       "summary": "- 2024년 하반기, 2025년 상반기 발생한 학자금 대출이자를 지원",
-      "step": "housing_deposit",
-      "purposes": ["주거"],
+      "step": "debt_plan",
+      "purposes": ["빚 상환"],
       "region": {
-        "sido": null,
+        "sido": "강원",
         "sigungu": null
       },
       "age": {
@@ -2584,5 +2348,6 @@
       "url": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/O00388400004",
       "source": "gov24"
     }
-  ]
+  ],
+  "repaired_at": "2026-10-04"
 }
