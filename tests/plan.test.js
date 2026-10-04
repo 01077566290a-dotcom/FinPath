@@ -7,8 +7,14 @@ import { buildPlan } from '../lib/plan/index.js';
 const NOW = new Date(2026, 9, 15);
 
 function profileOf(steps) {
+  // 결혼·빚 상환은 입력 화면 목적에서 뺐지만(2026-10-04) 엔진은 계속 계산할 수 있어야 해요.
+  // 그래서 목적 답만 화면 검증을 건너뛰고 넣어요. 나머지 답은 그대로 검증해요.
   let answers = {};
-  for (const [id, value] of steps) {
+  const purposes = steps.find(([id]) => id === 'purposes')?.[1];
+  if (purposes) answers = { purposes };
+  // 목적을 먼저 답해야 목적별 질문(고용 형태 등)이 보여요. (입력 화면도 목적을 먼저 물어요)
+  const ordered = steps.filter(([id]) => id !== 'purposes');
+  for (const [id, value] of ordered) {
     const result = answer(answers, id, value, { now: NOW });
     assert.equal(result.error, null, `${id}: ${result.error}`);
     answers = result.answers;

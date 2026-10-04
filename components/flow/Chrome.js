@@ -47,7 +47,7 @@ export function StepProgress({ current }) {
 }
 
 // 기획안 v4의 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
-const FLOW = ['목표·내 돈', '지역·목적', '상세 정보', '타임라인', '리포트'];
+const FLOW = ['목표·내 돈', '맞춤 질문', '정책 찾기', '타임라인', '리포트'];
 // fill: 지금 단계 안에서 답한 비율 ({ ratio, done, total }). 주면 지금 단계 막대를 그만큼만 채우고 "3/7"을 함께 보여줘요.
 export function FlowSteps({ current, fill = null }) {
   return (
@@ -74,12 +74,7 @@ export function FlowSteps({ current, fill = null }) {
             />
             <span>
               <span className="flow-steps__n">{'①②③④⑤'[i]}</span> {label}
-              {partial && (
-                <span className="flow-steps__count">
-                  {' '}
-                  {Math.min(fill.done + 1, fill.total)}/{fill.total}
-                </span>
-              )}
+              {/* "3/7" 같은 개수는 답에 따라 전체가 늘어나 끝이 멀어 보여서, 막대 채움만 보여줘요 */}
             </span>
           </li>
         );

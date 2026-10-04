@@ -1165,3 +1165,639 @@ html {
     scroll-padding-bottom: 120px;
   }
 }
+
+/* 입력을 마친 화면: 다음 할 일 하나 + 접힌 답 목록 */
+.review--done .flow-nav--done {
+  justify-content: flex-start;
+}
+.goal-review {
+  border-top: 1px solid var(--ds-line);
+  padding-top: 16px;
+}
+.goal-review > summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ds-ink-2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.goal-review > summary::-webkit-details-marker {
+  display: none;
+}
+.goal-review > summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border: solid var(--ds-ink-3);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.2s;
+}
+.goal-review[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.goal-review[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── 리포트: 내 돈 건강 점수 (인바디식) ── */
+.rs-score {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rs-score__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.rs-score__head h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ds-ink-3);
+  letter-spacing: -0.01em;
+}
+.rs-score__total {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+}
+.rs-score__total b {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--ds-ink);
+}
+.rs-score__total span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ds-ink-3);
+}
+.rs-score__comment {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ds-ink);
+  word-break: keep-all;
+}
+.rs-score__action {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ds-money);
+  word-break: keep-all;
+}
+.rs-score__items {
+  display: grid;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ds-line);
+}
+.rs-score__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 10px;
+}
+.rs-score__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ds-ink-2);
+}
+.rs-score__value {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ds-ink);
+}
+.rs-score__value small {
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 1px;
+  color: var(--ds-ink-3);
+}
+.rs-level {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.rs-level--high {
+  background: var(--ds-money-soft);
+  color: var(--ds-money);
+}
+.rs-level--mid {
+  background: var(--ds-sunken);
+  color: var(--ds-ink-2);
+}
+.rs-level--low {
+  background: var(--ds-gap-soft);
+  color: var(--ds-gap);
+}
+.rs-score__bar {
+  position: relative;
+  height: 10px;
+  margin: 8px 0 6px;
+  border-radius: 999px;
+  background: var(--ds-sunken);
+}
+.rs-score__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--ds-ink-2);
+}
+.rs-score__item--high .rs-score__fill {
+  background: var(--ds-money);
+}
+.rs-score__item--low .rs-score__fill {
+  background: var(--ds-gap);
+}
+.rs-score__tick {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ds-ink);
+}
+.rs-score__tick--limit {
+  background: var(--ds-gap);
+}
+.rs-score__compare {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ds-ink-3);
+  word-break: keep-all;
+}
+.rs-score__compare span {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+/* ── 리포트: 자세히 보기 (접힘) ── */
+.rs-more {
+  border-radius: 24px;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-line);
+  box-shadow: var(--ds-shadow);
+}
+.rs-more > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 20px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ds-ink);
+}
+.rs-more > summary::-webkit-details-marker {
+  display: none;
+}
+.rs-more > summary span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ds-ink-3);
+}
+.rs-more > summary::after {
+  content: '';
+  margin-left: auto;
+  align-self: center;
+  width: 9px;
+  height: 9px;
+  border: solid var(--ds-ink-3);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-3px);
+  transition: transform 0.2s;
+}
+.rs-more[open] > summary::after {
+  transform: rotate(-135deg) translateY(-3px);
+}
+.rs-more__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+.rs-more__body .rs-card {
+  box-shadow: none;
+  background: var(--ds-bg);
+  border-color: transparent;
+}
+
+/* ── 리포트: 계산 방법 ── */
+.rs-method__list {
+  display: grid;
+  gap: 8px;
+}
+.rs-method__item {
+  border: 1px solid var(--ds-line);
+  border-radius: 16px;
+  background: var(--ds-surface);
+}
+.rs-method__item > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ds-ink);
+}
+.rs-method__item > summary::-webkit-details-marker {
+  display: none;
+}
+.rs-method__item > summary b {
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.rs-method__item[open] > summary {
+  border-bottom: 1px solid var(--ds-line);
+}
+.rs-method__item ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 14px 16px 16px 32px;
+  list-style: disc;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ds-ink-2);
+  word-break: keep-all;
+}
+@media print {
+  .rs-more,
+  .rs-more__body {
+    display: block;
+  }
+  .rs-method__item ul {
+    display: block;
+  }
+}
+
+/* ── ④ 타임라인: 한 단계씩 넘겨 보기 ── */
+.story {
+  max-width: 760px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.story__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.story__head h2 {
+  font-size: 22px;
+  font-weight: 800;
+}
+.story__head p {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ds-ink-3);
+}
+.story__hint--touch {
+  display: none;
+}
+@media (hover: none) {
+  .story__hint--key {
+    display: none;
+  }
+  .story__hint--touch {
+    display: inline;
+  }
+}
+.story__progress {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ds-ink-2);
+}
+
+/* 전체 단계 한 줄 */
+.story__rail {
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -4px;
+  padding: 4px;
+}
+.story__rail::-webkit-scrollbar {
+  display: none;
+}
+.story__rail ol {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  min-width: max-content;
+}
+.story__rail li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-right: 22px;
+}
+.story__rail li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 34px;
+  right: 2px;
+  bottom: 16px;
+  height: 2px;
+  background: var(--ds-line-strong);
+}
+.story__phase {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ds-ink-3);
+  white-space: nowrap;
+}
+.story__rail li:not(:has(.story__phase)) {
+  padding-top: 19px;
+}
+.story__dot {
+  position: relative;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--ds-line-strong);
+  background: var(--ds-surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ds-ink-2);
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--ds-ease),
+    background 0.2s,
+    border-color 0.2s;
+}
+.story__dot:hover {
+  border-color: var(--ds-ink);
+}
+.story__dot.is-done {
+  background: var(--ds-money);
+  border-color: var(--ds-money);
+  color: #fff;
+}
+.story__dot.is-current {
+  background: var(--ds-ink);
+  border-color: var(--ds-ink);
+  color: #fff;
+  transform: scale(1.15);
+}
+
+/* 지금 단계 카드 */
+.story__stage {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+  border-radius: 28px;
+}
+.story__card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  border-radius: 28px;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-line);
+  box-shadow: var(--ds-shadow);
+  word-break: keep-all;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .story__card--next {
+    animation: story-in-right 0.38s var(--ds-ease) both;
+  }
+  .story__card--prev {
+    animation: story-in-left 0.38s var(--ds-ease) both;
+  }
+}
+@keyframes story-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes story-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-48px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.story__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ds-ink-3);
+}
+.story__meta b {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ds-ink);
+  color: #fff;
+  font-size: 12px;
+}
+.story__title {
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.story__figure {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ds-money-soft);
+  color: var(--ds-money);
+  font-size: 15px;
+  font-weight: 700;
+}
+.story__personal {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 14px 16px 14px 32px;
+  border-radius: 16px;
+  background: var(--ds-bg);
+  list-style: disc;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ds-ink);
+}
+.story__why {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ds-ink-2);
+}
+.story__how {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: how;
+}
+.story__how li {
+  counter-increment: how;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ds-ink);
+}
+.story__how li::before {
+  content: counter(how);
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ds-sunken);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ds-ink-2);
+}
+.story__policies {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ds-line);
+}
+.story__policies h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ds-ink);
+}
+.story__policies ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story__policies a {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--ds-line);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.story__policies a:hover {
+  border-color: var(--ds-line-strong);
+  background: var(--ds-bg);
+}
+.story__policies strong {
+  font-size: 14px;
+}
+.story__policies a span {
+  font-size: 13px;
+  color: var(--ds-ink-3);
+}
+.story__more,
+.story__source {
+  font-size: 12px;
+  color: var(--ds-ink-3);
+}
+.story__done {
+  align-self: flex-start;
+}
+.story__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.story__nav .btn:disabled {
+  opacity: 0.35;
+}
+
+/* 지도 화면의 접힌 영역 (돈의 순서) */
+.map-fold {
+  max-width: 760px;
+  width: 100%;
+  border-radius: 24px;
+  border: 1px solid var(--ds-line);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow);
+}
+.map-fold > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 20px 24px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.map-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.map-fold > summary span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ds-ink-3);
+}
+.map-fold[open] > summary {
+  border-bottom: 1px solid var(--ds-line);
+}
+.map-fold .mo {
+  border: 0;
+  box-shadow: none;
+  border-radius: 0 0 24px 24px;
+}
+.map-fold-row {
+  max-width: 760px;
+  width: 100%;
+}
+@media (max-width: 560px) {
+  .story__card {
+    padding: 22px 18px;
+    border-radius: 24px;
+  }
+  .story__nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    margin: 0 -16px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--ds-bg) 70%, rgba(246, 246, 243, 0));
+  }
+}

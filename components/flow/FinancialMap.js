@@ -11,6 +11,7 @@ import MoneyOrder from './MoneyOrder.js';
 import { SiteHeader, FlowSteps, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
 import { useFlowMode } from '../../lib/flowMode.js';
 import ReportDialog from '../report/ReportDialog.js';
+import TimelineStory from './TimelineStory.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
 const REPORT_CLOSED_KEY = 'finpath-report-closed';
@@ -70,6 +71,7 @@ export default function FinancialMap() {
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
   const flow = useFlowMode(); // 이전 흐름으로 보기 (lib/flowMode.js)
+  const [fullMap, setFullMap] = useState(false); // 기본은 한 단계씩 넘겨 보기, 누르면 전체 지도
   useEffect(() => {
     if (!readClosed()) setReportOpen(true);
   }, []);
@@ -106,17 +108,55 @@ export default function FinancialMap() {
       <main className="map-page">
         {flow === 'classic' ? <StepProgress current={2} /> : <FlowSteps current={4} />}
         <MapIntro demo={demo} />
-        <MoneyOrder plan={plan} />
-        {roadmap.steps.length ? (
+        {flow === 'classic' ? (
           <>
-            <RoadmapHeading roadmap={roadmap} done={done} />
-            <MapBoard roadmap={roadmap} done={done} onToggleDone={toggleDone} />
+            <MoneyOrder plan={plan} />
+            {roadmap.steps.length ? (
+              <>
+                <RoadmapHeading roadmap={roadmap} done={done} />
+                <MapBoard roadmap={roadmap} done={done} onToggleDone={toggleDone} />
+              </>
+            ) : (
+              <p className="card empty-map">지도에 담을 단계가 없어요. 입력 화면에서 목적을 골라 주세요.</p>
+            )}
+          </>
+        ) : roadmap.steps.length ? (
+          <>
+            <TimelineStory
+              roadmap={roadmap}
+              done={done}
+              onToggleDone={toggleDone}
+              onOpenReport={openReport}
+              policyDate={policyData.checked_at}
+            />
+            <details className="map-fold">
+              <summary>
+                돈의 순서 <span>매달 모으는 돈을 어디에 먼저 넣을지 (자금 배분)</span>
+              </summary>
+              <MoneyOrder plan={plan} />
+            </details>
+            <div className="map-fold-row">
+              <button
+                type="button"
+                className="btn btn--outline btn--md"
+                aria-expanded={fullMap}
+                onClick={() => setFullMap(value => !value)}
+              >
+                {fullMap ? '전체 지도 접기' : '전체 지도로 보기'}
+              </button>
+            </div>
+            {fullMap && (
+              <>
+                <RoadmapHeading roadmap={roadmap} done={done} />
+                <MapBoard roadmap={roadmap} done={done} onToggleDone={toggleDone} />
+              </>
+            )}
           </>
         ) : (
           <p className="card empty-map">지도에 담을 단계가 없어요. 입력 화면에서 목적을 골라 주세요.</p>
         )}
         <div className="map-report-cta">
-          <p>지도를 따라가기 전에, 내 숫자를 한 장으로 정리한 리포트를 먼저 볼 수 있어요.</p>
+          <p>점수와 계산 방법까지, 내 숫자를 한 장으로 정리한 리포트도 볼 수 있어요.</p>
           <button type="button" className="btn btn--primary btn--md" onClick={openReport}>
             맞춤 리포트 받기
           </button>
@@ -136,8 +176,8 @@ function MapIntro({ demo }) {
   return (
     <div className="map-intro">
       <div className="flow-heading">
-        <h1>나의 금융 지도</h1>
-        <p>돈을 어떻게 나눌지(자금 배분)와, 그에 맞춰 언제 무엇을 할지(실행 로드맵)를 내 숫자로 정리했어요.</p>
+        <h1>나의 타임라인</h1>
+        <p>지금부터 무엇을 어떤 순서로 하면 되는지 내 숫자로 정리했어요.</p>
       </div>
       {demo && (
         <p className="info-note">
