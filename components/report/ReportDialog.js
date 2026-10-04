@@ -2,11 +2,12 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ReportSheet } from './ReportSheet.js';
+import ShareMenu from './ShareMenu.js';
 import { useFlowMode } from '../../lib/flowMode.js';
 
 // 지도 화면 위에 띄우는 리포트 팝업. 닫으면 뒤의 타임라인 지도가 보입니다.
 // 브라우저 기본 <dialog>를 써서 포커스가 팝업 안에 머물고, Esc·바깥 클릭으로 닫힙니다.
-export default function ReportDialog({ open, plan, demo, onClose }) {
+export default function ReportDialog({ open, plan, profile, demo, onClose }) {
   const ref = useRef(null);
   const closeRef = useRef(null);
   const classic = useFlowMode() === 'classic';
@@ -43,11 +44,17 @@ export default function ReportDialog({ open, plan, demo, onClose }) {
             </Link>
           ) : (
             <>
-              <Link href="/goal" className="btn btn--ghost btn--sm">
+              <Link href="/goal" className="btn btn--ghost btn--sm hide-sm">
                 답 고치기
               </Link>
-              <Link href="/report" className="btn btn--outline btn--sm">
-                크게 보기 · 인쇄
+              <ShareMenu
+                profile={profile}
+                demo={demo}
+                summary={`FinPath 맞춤 리포트: 실제로 필요한 돈 ${plan.core.needed.toLocaleString()}만 원`}
+              />
+              {/* 인쇄는 리포트 화면에서 열자마자 인쇄 창을 띄워요 (접힌 부분까지 펼쳐서) */}
+              <Link href="/report?print=1" className="btn btn--outline btn--sm">
+                인쇄
               </Link>
             </>
           )}

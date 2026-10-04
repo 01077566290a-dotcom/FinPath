@@ -94,7 +94,7 @@ export default function FinancialMap() {
 
   return (
     <>
-      <SiteHeader>
+      <SiteHeader back="/goal">
         <div className="site-header__actions">
           <Link href="/goal" className="site-header__link">
             답변 고치기
@@ -104,7 +104,7 @@ export default function FinancialMap() {
           </button>
         </div>
       </SiteHeader>
-      <ReportDialog open={reportOpen} plan={plan} demo={demo} onClose={closeReport} />
+      <ReportDialog open={reportOpen} plan={plan} profile={profile} demo={demo} onClose={closeReport} />
       {flow !== 'classic' && <FlowSteps current={4} />}
       <main className="map-page">
         {flow === 'classic' && <StepProgress current={2} />}

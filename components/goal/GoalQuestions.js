@@ -103,7 +103,7 @@ function stageFill(answers, stage) {
 function Page({ persistent, step = 1, fill = null, classic = false, children }) {
   return (
     <>
-      <SiteHeader>
+      <SiteHeader back="/">
         <span className="site-header__tagline">내 돈 상황 입력</span>
       </SiteHeader>
       {!classic && <FlowSteps current={step} fill={fill} />}

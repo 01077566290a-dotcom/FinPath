@@ -167,7 +167,64 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
   const [dir, setDir] = useState('next');
   const viewport = useRef(null);
   const cards = useRef({});
-  const drag = useRef(null);
+  // 마우스 따라 움직이기: 커서가 타임라인 위에서 오른쪽으로 갈수록 뒤쪽 단계가 보이게 부드럽게 흘러가요.
+  const follow = useRef({ on: false, x: 0, raf: 0 });
+  const calm = useRef(false); // '움직임 줄이기' 설정
+  useEffect(() => {
+    calm.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  }, []);
+
+  // 커서 가까운 카드일수록 조금 크게 (맥 Dock처럼)
+  const magnify = useCallback(x => {
+    const box = viewport.current;
+    if (!box) return;
+    for (const li of box.querySelectorAll('.track__step')) {
+      if (x === null) {
+        li.style.removeProperty('--mag');
+        continue;
+      }
+      const r = li.getBoundingClientRect();
+      const d = Math.abs(r.left + r.width / 2 - x);
+      li.style.setProperty('--mag', (1 + 0.1 * Math.max(0, 1 - d / 260)).toFixed(3));
+    }
+  }, []);
+
+  const tick = useCallback(() => {
+    const box = viewport.current;
+    const f = follow.current;
+    if (!box || !f.on) {
+      f.raf = 0;
+      return;
+    }
+    const rect = box.getBoundingClientRect();
+    const max = box.scrollWidth - box.clientWidth;
+    // 양 끝 12%는 여유를 두고, 그 안의 커서 위치를 처음~끝에 맞춰요.
+    const ratio = Math.min(1, Math.max(0, (f.x - rect.left - rect.width * 0.12) / (rect.width * 0.76)));
+    const target = ratio * max;
+    const gap = target - box.scrollLeft;
+    box.scrollLeft = Math.abs(gap) < 0.5 ? target : box.scrollLeft + gap * 0.09;
+    magnify(f.x);
+    f.raf = requestAnimationFrame(tick);
+  }, [magnify]);
+
+  const startFollow = event => {
+    if (event.pointerType !== 'mouse' || calm.current || open) return;
+    const f = follow.current;
+    f.x = event.clientX;
+    if (!f.on) {
+      f.on = true;
+      if (!f.raf) f.raf = requestAnimationFrame(tick);
+    }
+  };
+  const stopFollow = () => {
+    follow.current.on = false;
+    magnify(null);
+  };
+  useEffect(() => () => cancelAnimationFrame(follow.current.raf), []);
+  useEffect(() => {
+    if (open) stopFollow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const center = useCallback(
     (i, smooth = true) => {
@@ -227,7 +284,9 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
     <section className="track" aria-label="나의 타임라인 지도">
       <div className="track__bar">
         <p className="track__hint">
-          <span className="track__hint--key">← → 방향키를 누르거나 카드를 누르면 크게 볼 수 있어요</span>
+          <span className="track__hint--key">
+            마우스를 옆으로 움직이면 타임라인이 따라와요 · 카드를 누르거나 ← →로 크게 보기
+          </span>
           <span className="track__hint--touch">옆으로 밀어 보고, 카드를 누르면 크게 볼 수 있어요</span>
         </p>
         <div className="track__tools">
@@ -246,26 +305,9 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
       <div
         className="track__viewport"
         ref={viewport}
-        onPointerDown={event => {
-          if (event.pointerType !== 'mouse' || event.button !== 0) return;
-          drag.current = { x: event.clientX, left: viewport.current.scrollLeft, moved: false };
-        }}
-        onPointerMove={event => {
-          const d = drag.current;
-          if (!d) return;
-          const dx = event.clientX - d.x;
-          if (Math.abs(dx) > 5) d.moved = true;
-          if (d.moved) viewport.current.scrollLeft = d.left - dx;
-        }}
-        onPointerUp={() => {
-          // 끌어서 옮긴 경우에는 카드 클릭으로 치지 않아요
-          setTimeout(() => {
-            drag.current = null;
-          }, 0);
-        }}
-        onPointerLeave={() => {
-          drag.current = null;
-        }}
+        onPointerEnter={startFollow}
+        onPointerMove={startFollow}
+        onPointerLeave={stopFollow}
       >
         <ol className="track__rail">
           {steps.map((step, i) => (
@@ -287,7 +329,6 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
                   aria-label={`${step.number}번 ${step.title}, ${step.phaseLabel}${done[step.id] ? ' (완료)' : ''}. 눌러서 크게 보기`}
                   onFocus={() => setActive(i)}
                   onClick={() => {
-                    if (drag.current?.moved) return;
                     setDir(i >= active ? 'next' : 'prev');
                     setActive(i);
                     setOpen(true);

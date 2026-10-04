@@ -130,7 +130,8 @@ function MethodCard({ sections }) {
 
 // 리포트 본문. /report 페이지와 지도 화면의 팝업에서 함께 씁니다.
 // plan은 2번 엔진 buildPlan(profile)의 결과이고, 화면용 정리는 lib/report/fromPlan.js가 합니다.
-export function ReportSheet({ plan, demo = false }) {
+// shared: 공유 링크로 연 리포트 (보기 전용)
+export function ReportSheet({ plan, demo = false, shared = false }) {
   const view = useMemo(() => viewFromPlan(plan, { demo }), [plan, demo]);
   const classic = useFlowMode() === 'classic';
   const { core, cashflow, cuts, fixes, checks, milestones, status, verdict, goals } = view;
@@ -187,9 +188,11 @@ export function ReportSheet({ plan, demo = false }) {
           <h1 id="rp-title">{view.title}</h1>
           <p>{view.meta.join(' · ')}</p>
         </div>
-        <span className={`rs-badge${demo ? '' : ' rs-badge--edited'}`}>{demo ? '시연 데이터' : '내 답변 기준'}</span>
+        <span className={`rs-badge${demo ? '' : ' rs-badge--edited'}`}>
+          {shared ? '공유받은 리포트' : demo ? '시연 데이터' : '내 답변 기준'}
+        </span>
       </header>
-      {demo && (
+      {demo && !shared && (
         <p className="rs-demo-note">
           지금은 시연 인물(정하은) 기준이에요.{' '}
           {classic ? (
