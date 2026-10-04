@@ -166,6 +166,10 @@ function RoadmapHeading({ roadmap, done }) {
           먼저 볼 단계
         </span>
         <span>
+          <i className="legend-swatch legend-swatch--done" />
+          완료
+        </span>
+        <span>
           <i className="legend-number">1</i>번호는 진행 순서
         </span>
         {roadmap.steps.length > 0 && (
