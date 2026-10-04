@@ -458,9 +458,14 @@ select:focus-visible {
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.5);
 }
-.mini-path li.is-done::before {
-  background: var(--ds-money-2);
-  border-color: var(--ds-money-2);
+.mini-path li.is-now {
+  font-weight: 700;
+  color: #fff;
+}
+.mini-path li.is-now::before {
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
 }
 .mini-path li:not(:last-child)::after {
   content: '';
@@ -525,6 +530,11 @@ select:focus-visible {
   }
   .bento__cell--third {
     grid-column: span 1;
+  }
+  /* 2열일 때 ①·② 다음 줄에 ③ 하나만 남아 빈칸이 생기지 않게 한 줄을 다 써요 */
+  .bento__cell--fill {
+    grid-column: span 2;
+    min-height: 0;
   }
 }
 @media (max-width: 560px) {
@@ -987,4 +997,171 @@ select:focus-visible {
   background: var(--ds-money);
   color: #fff;
   font-size: 13px;
+}
+
+/* 홈: 시연 예시 표시 */
+.bento__caption {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ds-ink-3);
+  word-break: keep-all;
+}
+.bento__caption b {
+  color: var(--ds-ink);
+}
+.bento__step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.bento__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--ds-line-strong);
+  background: var(--ds-surface);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ds-ink-3);
+}
+.bento__cell--ink .bento__tag {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+}
+.bento__note {
+  margin-top: 4px;
+  font-size: 13px !important;
+}
+
+/* 벤토 안 미니 그림: 입력칸 */
+.mini-fields {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+}
+.mini-fields span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--ds-line-strong);
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ds-ink);
+}
+.mini-fields small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ds-ink-3);
+}
+.mini-fields em {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ds-ink-3);
+}
+
+/* ── 지도 단계 상태: 모양으로도 구분돼요 ──
+ * 기본       흰 동그라미 + 회색 실선
+ * 먼저 볼 단계 흰 동그라미 + 검정 점선 (선택한 단계보다 먼저 해야 하는 단계)
+ * 선택한 단계 검정으로 채운 동그라미 + 검정 카드
+ * 완료       초록으로 채운 동그라미 + 체크, 제목에 취소선
+ */
+.map-dot.is-first {
+  border: 2px dashed var(--ds-ink);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+}
+.map-card.is-first {
+  border: 1.5px dashed var(--ds-ink);
+  box-shadow: none;
+}
+.map-card.is-selected {
+  background: var(--ds-ink);
+  border-color: var(--ds-ink);
+  color: #fff;
+  box-shadow: var(--ds-shadow-lift);
+}
+.map-card.is-selected .map-card__text > span:first-child {
+  color: #fff;
+}
+.map-card.is-selected .map-card__badge {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.map-dot.is-selected {
+  background: var(--ds-ink);
+  border: 2px solid var(--ds-ink);
+  color: #fff;
+}
+.map-dot.is-done,
+.map-dot.is-done.is-first,
+.map-dot.is-done.is-selected {
+  background: var(--ds-money);
+  border: 2px solid var(--ds-money);
+  color: #fff;
+}
+.legend-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  vertical-align: -3px;
+}
+.legend-swatch--selected {
+  background: var(--ds-ink);
+  border: 2px solid var(--ds-ink);
+}
+.legend-swatch--first {
+  background: var(--ds-surface);
+  border: 2px dashed var(--ds-ink);
+}
+.legend-swatch--done {
+  background: var(--ds-money);
+  border: 2px solid var(--ds-money);
+  position: relative;
+}
+.legend-swatch--done::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.legend-number {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-line-strong);
+  color: var(--ds-ink-2);
+}
+.map-legend {
+  font-size: 13px;
+  color: var(--ds-ink-2);
+}
+
+/* 입력칸이 칸 폭보다 넓어져 화면이 옆으로 밀리지 않게 (2열 고정지출 입력) */
+.goal-field,
+.goal-field__box {
+  min-width: 0;
+}
+.goal-field__box input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 위에 붙은 헤더와 아래에 붙은 버튼이 이동한 위치(포커스·앵커)를 가리지 않게 */
+html {
+  scroll-padding-top: 88px;
+}
+@media (max-width: 560px) {
+  html {
+    scroll-padding-bottom: 120px;
+  }
 }
