@@ -2137,3 +2137,109 @@ a.flow-steps__link:hover > span:last-child {
     display: none;
   }
 }
+
+/* ── 시연 전 다듬기 ── */
+
+/* 입력 화면: 진행 표시와 질문 영역의 왼쪽 줄을 맞춰요 (둘 다 720px 가운데) */
+.flowbar:has(+ .flow-page) .flow-steps {
+  max-width: 720px;
+}
+
+/* 빠른 선택: 지금 칸에 들어 있는 값은 눌린 모양 */
+.goal-quick__btn.is-on {
+  background: var(--ds-ink);
+  border-color: var(--ds-ink);
+  color: #fff;
+}
+
+/* 리포트 첫 카드: 생각한 목표 · 실제로 필요한 돈 · 모을 수 있는 돈 */
+.rs-trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 18px;
+}
+.rs-trio--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.rs-trio__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ds-bg);
+  min-width: 0;
+}
+.rs-trio__item dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ds-ink-3);
+}
+.rs-trio__item dd {
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--ds-ink);
+  white-space: nowrap;
+}
+.rs-trio__item small {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ds-ink-3);
+}
+.rs-trio__item--goal dd {
+  color: var(--ds-ink-3);
+}
+.rs-trio__item--need {
+  background: var(--ds-ink);
+}
+.rs-trio__item--need dt,
+.rs-trio__item--need small {
+  color: rgba(255, 255, 255, 0.72);
+}
+.rs-trio__item--need dd {
+  color: #fff;
+}
+.rs-trio__item--can {
+  background: var(--ds-money-soft);
+}
+.rs-trio__item--can dd {
+  color: var(--ds-money);
+}
+@media (max-width: 520px) {
+  .rs-trio,
+  .rs-trio--two {
+    grid-template-columns: 1fr;
+  }
+  .rs-trio__item {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 14px;
+  }
+  .rs-trio__item dd {
+    font-size: 24px;
+  }
+  .rs-trio__item small {
+    width: 100%;
+    text-align: right;
+  }
+}
+
+/* 아끼기: 아무것도 고르지 않았을 때 */
+.rs-cut__amount--empty {
+  font-size: 16px !important;
+  font-weight: 700;
+  color: var(--ds-money);
+}
+
+/* 팝업을 닫은 뒤 남는 포커스 테두리를 조금 가볍게 */
+.site-header .btn:focus-visible,
+.spot__bar .btn:focus-visible,
+.rp-dialog__actions .btn:focus-visible {
+  outline-width: 2px;
+  outline-offset: 2px;
+}

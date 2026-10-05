@@ -66,15 +66,15 @@ export default function FinancialMap() {
     });
   }
 
-  // ⑤ 맞춤 리포트: 지도에 처음 들어오면 팝업으로 앞에 뜨고, 닫으면 뒤의 지도가 보입니다.
-  // 닫은 뒤에는 '맞춤 리포트 받기' 버튼으로 다시 열 수 있습니다.
+  // ⑤ 맞춤 리포트 팝업: '맞춤 리포트 받기' 버튼이나 타임라인 마지막 단계의 '리포트 보기'로 열어요.
+  // ('타임라인 보기'로 들어왔는데 리포트가 먼저 덮으면 헷갈려서 자동으로 띄우지 않아요. 이전 흐름에서만 자동으로 떠요)
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
   const flow = useFlowMode(); // 이전 흐름으로 보기 (lib/flowMode.js)
   const [fullMap, setFullMap] = useState(false); // 기본은 한 단계씩 넘겨 보기, 누르면 전체 지도
   useEffect(() => {
-    if (!readClosed()) setReportOpen(true);
-  }, []);
+    if (flow === 'classic' && !readClosed()) setReportOpen(true);
+  }, [flow]);
   function openReport() {
     writeClosed(false);
     setReportOpen(true);

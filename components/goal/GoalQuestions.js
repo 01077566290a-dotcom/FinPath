@@ -259,12 +259,20 @@ export function readAmount(value, unit) {
   return null;
 }
 
-function QuickPicks({ values, unit, onPick, label }) {
+// current: 지금 칸에 들어 있는 값. 같은 칩은 눌린 모양으로 보여 줘요.
+function QuickPicks({ values, unit, onPick, label, current }) {
+  const now = String(current ?? '').replace(/[^0-9]/g, '');
   if (!values?.length) return null;
   return (
     <div className="goal-quick" role="group" aria-label={label ? `${label} 빠른 선택` : '빠른 선택'}>
       {values.map(v => (
-        <button key={v} type="button" className="goal-quick__btn" onClick={() => onPick(String(v))}>
+        <button
+          key={v}
+          type="button"
+          className={`goal-quick__btn${now !== '' && now === String(v) ? ' is-on' : ''}`}
+          aria-pressed={now !== '' && now === String(v)}
+          onClick={() => onPick(String(v))}
+        >
           {unit === '만 원' ? readShort(v) : `${v}${unit}`}
         </button>
       ))}
@@ -284,7 +292,7 @@ function NumberField({ id, label, unit, value, onChange, quick }) {
           {reading}
         </p>
       )}
-      <QuickPicks values={quick} unit={unit} onPick={onChange} label={label} />
+      <QuickPicks values={quick} unit={unit} onPick={onChange} label={label} current={value} />
     </div>
   );
 }
