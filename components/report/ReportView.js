@@ -66,7 +66,7 @@ export default function ReportView() {
   if (sharedPlan)
     return (
       <>
-        <SiteHeader back="/">
+        <SiteHeader back="/" backLabel="처음 화면">
           <div className="site-header__actions">
             <Link href="/goal" className="btn btn--primary btn--sm">
               내 숫자로 해 보기
@@ -94,7 +94,7 @@ export default function ReportView() {
   if (classic)
     return (
       <>
-        <SiteHeader back="/map">
+        <SiteHeader back="/map" backLabel="④ 타임라인">
           <div className="site-header__actions">
             {share}
             {printButton}
@@ -110,7 +110,7 @@ export default function ReportView() {
 
   return (
     <>
-      <SiteHeader back="/map">
+      <SiteHeader back="/map" backLabel="④ 타임라인">
         <div className="site-header__actions">
           <Link href="/goal" className="site-header__link hide-sm">
             답 고치기

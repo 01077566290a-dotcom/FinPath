@@ -2,12 +2,14 @@ import Link from 'next/link';
 import BackButton from './BackButton.js';
 
 // back: 뒤로 가기 버튼을 보일 때, 링크로 바로 들어온 경우 돌아갈 주소 (예: '/map')
-export function SiteHeader({ children, back }) {
+// onBack: 화면 안에서 한 칸 뒤로 가기 (입력 화면의 이전 질문). 처리했으면 true
+// back: 헤더 '이전 단계' 버튼이 갈 주소, backLabel: 돌아갈 단계 이름 (예: '④ 타임라인')
+export function SiteHeader({ children, back, backLabel, onBack }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
         <div className="site-header__left">
-          {back && <BackButton fallback={back} />}
+          {back && <BackButton fallback={back} label={backLabel} onBack={onBack} />}
           <Link href="/" className="brand" aria-label="FinPath 처음으로">
             <span className="brand__mark" aria-hidden="true">
               <svg
@@ -54,7 +56,7 @@ export function StepProgress({ current }) {
 // 서비스 흐름 5단계: ①~③ 입력(/goal) → ④ 타임라인(/map) → ⑤ 리포트(/report)
 // 얇은 막대 + 이름. 헤더 아래 가운데에 놓아요. 타임라인·리포트 단계는 눌러서 갈 수 있어요.
 // fill: 지금 단계 안에서 답한 비율 ({ ratio }). 주면 지금 단계 막대를 그만큼 채워요.
-const FLOW = [
+export const FLOW = [
   { label: '목표·내 돈', href: '/goal' },
   { label: '맞춤 질문', href: '/goal' },
   { label: '정책 찾기', href: '/goal' },
