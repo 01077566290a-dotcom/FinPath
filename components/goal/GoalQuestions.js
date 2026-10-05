@@ -630,7 +630,7 @@ function ClassicSummary({ answers, onEdit, onReset }) {
   );
 }
 
-// 입력을 마친 화면: 다음 할 일(타임라인 보기) 하나만 크게. 답 목록은 접어 두고, 정책은 타임라인 단계에 붙여 보여줘요.
+// 입력을 마친 화면: 다음 할 일(결과 보기) 하나만 크게. 누르면 결과 요약이 뜨고, 닫으면 타임라인이에요. 답 목록은 접어 두고, 정책은 타임라인 단계에 붙여 보여줘요.
 function Summary({ answers, onEdit, onReset, classic }) {
   if (classic) return <ClassicSummary answers={answers} onEdit={onEdit} onReset={onReset} />;
   const profile = buildProfile(answers);
@@ -639,7 +639,7 @@ function Summary({ answers, onEdit, onReset, classic }) {
   return (
     <section className="question review review--done" aria-labelledby="goal-summary-title">
       <div className="flow-heading">
-        <h1 id="goal-summary-title">다 됐어요. 내 타임라인을 만들었어요</h1>
+        <h1 id="goal-summary-title">다 됐어요. 내 결과를 만들었어요</h1>
         <p>
           답 {rows.length}개로 실제로 필요한 돈과 모으는 순서를 계산했어요.
           {policies.length > 0 && ` 나에게 맞을 수 있는 정책 ${policies.length}개는 타임라인 단계마다 붙여 두었어요.`}
@@ -647,8 +647,19 @@ function Summary({ answers, onEdit, onReset, classic }) {
       </div>
 
       <div className="flow-nav flow-nav--done">
-        <Link href="/map" className="btn btn--primary btn--lg">
-          타임라인 보기 <ArrowIcon />
+        <Link
+          href="/map"
+          className="btn btn--primary btn--lg"
+          onClick={() => {
+            // 새로 계산한 결과라서, 전에 닫은 적이 있어도 결과 요약을 다시 띄워요 (FinancialMap의 같은 키)
+            try {
+              window.sessionStorage.removeItem('finpath-report-closed');
+            } catch {
+              // 저장소가 막혀 있으면 그냥 넘어가요
+            }
+          }}
+        >
+          결과 보기 <ArrowIcon />
         </Link>
       </div>
 
