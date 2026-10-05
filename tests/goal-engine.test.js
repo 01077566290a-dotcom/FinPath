@@ -15,6 +15,25 @@ import {
 // 기준 달: 2026년 10월 (docs/demo-persona.md와 같음)
 const NOW = new Date(2026, 9, 15);
 
+test('월급 수정은 기존 저축과 지출을 재검증하고 실패하면 원래 답을 유지한다', () => {
+  const original = { income: 245, saving_now: 73 };
+  const invalid = answer(original, 'income', 50);
+  assert.match(invalid.error, /매달 모으는 돈을 먼저/);
+  assert.equal(invalid.answers, original);
+  assert.deepEqual(original, { income: 245, saving_now: 73 });
+
+  const fixed = { ...original, fixed_items: { 통신비: 30 }, has_debt: 'yes', debt: { remain: 100, monthly: 15 } };
+  assert.match(answer(fixed, 'income', 100).error, /매달 모으는 돈을 먼저/);
+  assert.match(answer(fixed, 'income', 40).error, /고정지출과 빚 상환액/);
+  const loweredSaving = answer(original, 'saving_now', 40).answers;
+  const valid = answer(loweredSaving, 'income', 50);
+  assert.equal(valid.error, null);
+  assert.equal(valid.answers.income, 50);
+  assert.equal(valid.answers.saving_now, 40);
+  assert.equal(answer(original, 'income', 300).error, null);
+  assert.equal(answer({}, 'income', 50).error, null);
+});
+
 function answerAll(steps) {
   let answers = {};
   for (const [id, value] of steps) {

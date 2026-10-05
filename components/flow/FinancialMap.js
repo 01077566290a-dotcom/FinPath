@@ -11,6 +11,7 @@ import MoneyOrder from './MoneyOrder.js';
 import { SiteHeader, FlowSteps, StepProgress, PrivacyNote, Disclaimer } from './Chrome.js';
 import { useFlowMode } from '../../lib/flowMode.js';
 import ReportDialog from '../report/ReportDialog.js';
+import SummaryDialog from '../report/SummaryDialog.js';
 import TimelineTrack from './TimelineTrack.js';
 
 // 리포트 팝업을 닫았는지 이 탭 안에서만 기억합니다. (닫은 뒤 새로고침해도 다시 튀어나오지 않게)
@@ -66,15 +67,26 @@ export default function FinancialMap() {
     });
   }
 
-  // ⑤ 맞춤 리포트: 지도에 처음 들어오면 팝업으로 앞에 뜨고, 닫으면 뒤의 지도가 보입니다.
-  // 닫은 뒤에는 '맞춤 리포트 받기' 버튼으로 다시 열 수 있습니다.
+  // ⑤ 결과: 지도에 처음 들어오면 한 화면짜리 '결과 요약'이 바로 떠요 (세 숫자 + 점수, 시연의 첫 장면).
+  // 닫으면 타임라인, [전체 리포트 보기]나 '맞춤 리포트 받기'로 전체 리포트 팝업을 열어요. 이전 흐름에서는 전체 리포트가 바로 떠요.
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
   const flow = useFlowMode(); // 이전 흐름으로 보기 (lib/flowMode.js)
   const [fullMap, setFullMap] = useState(false); // 기본은 한 단계씩 넘겨 보기, 누르면 전체 지도
   useEffect(() => {
-    if (!readClosed()) setReportOpen(true);
-  }, []);
+    if (readClosed()) return;
+    if (flow === 'classic') setReportOpen(true);
+    else setSummaryOpen(true);
+  }, [flow]);
+  function closeSummary() {
+    writeClosed(true);
+    setSummaryOpen(false);
+  }
+  function summaryToReport() {
+    setSummaryOpen(false);
+    setReportOpen(true);
+  }
   function openReport() {
     writeClosed(false);
     setReportOpen(true);
@@ -104,6 +116,7 @@ export default function FinancialMap() {
           </button>
         </div>
       </SiteHeader>
+      <SummaryDialog open={summaryOpen} plan={plan} demo={demo} onClose={closeSummary} onOpenReport={summaryToReport} />
       <ReportDialog open={reportOpen} plan={plan} profile={profile} demo={demo} onClose={closeReport} />
       {flow !== 'classic' && <FlowSteps current={4} />}
       <main className="map-page">

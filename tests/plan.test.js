@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { answer, buildProfile } from '../lib/goal/engine.js';
 import { buildPlan } from '../lib/plan/index.js';
+import { viewFromPlan } from '../lib/report/fromPlan.js';
 
 // 기준 달: 2026년 10월 (docs/demo-persona.md와 같음)
 const NOW = new Date(2026, 9, 15);
@@ -55,6 +56,35 @@ const HOUSING = [
 const HAEUN = profileOf([...COMMON, ['purposes', ['주거', '비상자금']], ...CUTS, ...HOUSING]);
 // docs/demo-persona.md의 [가정]: 독립 후 변동 생활비 105 → 100
 const haeun = buildPlan(HAEUN, { assumptions: { variableAfterDelta: -5 } });
+
+test('일부 목표만 완료되면 전체 완료 날짜와 기간 연장을 안내하지 않는다', () => {
+  const profile = structuredClone(HAEUN);
+  profile.purposes.push('결혼');
+  profile.detail['결혼'] = { wedding_months: 24, wedding_cost: 3000, family_support: 0, partner_share: 0 };
+  profile.money.saving_now = 10;
+  const plan = buildPlan(profile);
+  assert.notEqual(plan.scenarios.A.done.housing, null);
+  assert.equal(plan.scenarios.A.done.wedding, null);
+  assert.equal(plan.core.monthsNeeded, null);
+  assert.equal(plan.core.doneLabel, null);
+  assert.equal(
+    plan.fixes.some(fix => fix.kind === 'extend'),
+    false,
+  );
+  assert.ok(plan.savings.every(item => item.sooner === null));
+  const view = viewFromPlan(plan);
+  assert.equal(view.status, 'cannot');
+  assert.match(view.verdict.headline, /모든 목표/);
+  assert.doesNotMatch(view.verdict.sentence, /준비가 끝나요|null/);
+});
+
+test('이미 모든 목표를 채운 경우 완료 시점 0개월을 유지한다', () => {
+  const profile = structuredClone(HAEUN);
+  profile.money.saved = 10000;
+  const plan = buildPlan(profile);
+  assert.equal(plan.core.monthsNeeded, 0);
+  assert.equal(plan.core.doneLabel, plan.asOfLabel);
+});
 
 test('정하은: 월 현금흐름이 정답지와 같다 (지금 73 → 독립 후 17)', () => {
   assert.deepEqual(haeun.cashflow.now, { spend: 172, save: 73, rate: 29.8 });

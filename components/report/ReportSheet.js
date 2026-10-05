@@ -155,7 +155,7 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
   const saveWithCut = view.saveNow + extra;
   const cutResult =
     extra === 0
-      ? ['아낄 항목을', '골라 보세요', '숫자가 바로 바뀌어요']
+      ? ['', '', '']
       : saveWithCut <= 0
         ? ['아껴도', `매달 ${money(-saveWithCut)} 부족`, '더 줄일 항목이 필요해요']
         : sooner !== null && sooner > 0
@@ -210,24 +210,45 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
 
       {/* 1. 핵심: 모을 수 있는 돈 */}
       <section className="rs-card rs-hero" aria-labelledby="rs-hero-title">
-        <p id="rs-hero-title" className="rs-hero__label">
-          {hasDeadline ? `${core.deadlineLabel}까지 모을 수 있는 돈` : `${view.purposeLabel}에 필요한 돈`}
-        </p>
-        <p className="rs-hero__amount">
-          {money(hasDeadline ? core.collectable : core.needed, { unit: false })}
-          <span>원</span>
-        </p>
-        <p className="rs-hero__need">
-          {hasDeadline ? (
-            <>
-              필요한 돈 <b>{money(core.needed)}</b>
-            </>
-          ) : (
-            <>
+        {hasDeadline ? (
+          <>
+            <p id="rs-hero-title" className="rs-hero__label">
+              {view.purposeLabel} · {core.deadlineLabel}까지
+            </p>
+            {/* 시연의 첫 장면: 생각한 목표 vs 실제로 필요한 돈 vs 모을 수 있는 돈 */}
+            <dl className={`rs-trio${core.goal ? '' : ' rs-trio--two'}`}>
+              {core.goal ? (
+                <div className="rs-trio__item rs-trio__item--goal">
+                  <dt>생각한 목표</dt>
+                  <dd>{money(core.goal)}</dd>
+                </div>
+              ) : null}
+              <div className="rs-trio__item rs-trio__item--need">
+                <dt>실제로 필요한 돈</dt>
+                <dd>{money(core.needed)}</dd>
+                {core.goal && core.goalDiff > 0 ? <small>생각보다 {money(core.goalDiff)} 더</small> : null}
+              </div>
+              <div className="rs-trio__item rs-trio__item--can">
+                <dt>모을 수 있는 돈</dt>
+                <dd>{money(core.collectable)}</dd>
+                <small>{core.deadlineLabel}까지</small>
+              </div>
+            </dl>
+          </>
+        ) : (
+          <>
+            <p id="rs-hero-title" className="rs-hero__label">
+              {`${view.purposeLabel}에 필요한 돈`}
+            </p>
+            <p className="rs-hero__amount">
+              {money(hasDeadline ? core.collectable : core.needed, { unit: false })}
+              <span>원</span>
+            </p>
+            <p className="rs-hero__need">
               지금 모아둔 돈 <b>{money(core.saved)}</b>
-            </>
-          )}
-        </p>
+            </p>
+          </>
+        )}
 
         {hasDeadline && (
           <>
@@ -310,15 +331,25 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
           tone="good"
         >
           <div className="rs-cut__sum">
-            <div>
-              <p className="rs-cut__label">매달 {money(extra)} 아끼면</p>
-              <p className="rs-cut__amount">
-                1년에 <b>{money(extra * 12)}</b>
+            {extra > 0 ? (
+              <div>
+                <p className="rs-cut__label">매달 {money(extra)} 아끼면</p>
+                <p className="rs-cut__amount">
+                  1년에 <b>{money(extra * 12)}</b>
+                </p>
+              </div>
+            ) : (
+              // 아무것도 고르지 않았을 때 '0만 원'을 크게 보여 주지 않고, 무엇을 하면 되는지 알려줘요
+              <div>
+                <p className="rs-cut__label">아래에서 줄일 항목을 눌러 보세요</p>
+                <p className="rs-cut__amount rs-cut__amount--empty">얼마나 빨라지는지 바로 보여 드려요</p>
+              </div>
+            )}
+            {extra > 0 && (
+              <p className="rs-cut__result">
+                {cutResult.map((text, i) => (i === 1 ? <b key={i}>{text}</b> : <span key={i}>{text}</span>))}
               </p>
-            </div>
-            <p className="rs-cut__result">
-              {cutResult.map((text, i) => (i === 1 ? <b key={i}>{text}</b> : <span key={i}>{text}</span>))}
-            </p>
+            )}
           </div>
           <ul className="rs-cut__list">
             {cuts.map(cut => {

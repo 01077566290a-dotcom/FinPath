@@ -264,12 +264,28 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
       if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
       if (isTyping(event.target) || document.querySelector('dialog[open]')) return;
       event.preventDefault();
+      // 지금 보고 있는 단계를 열어요: 마우스가 타임라인 위에 있으면 그 근처 카드 → 키보드로 고른 카드 → 화면 가운데 카드
+      const focused = steps.findIndex(step => cards.current[step.id] === document.activeElement);
+      const box = viewport.current?.getBoundingClientRect();
+      const x = follow.current.on ? follow.current.x : box ? box.left + box.width / 2 : null;
+      let nearest = active;
+      if (!follow.current.on && focused >= 0) nearest = focused;
+      else if (x !== null) {
+        let best = Infinity;
+        steps.forEach((step, i) => {
+          const r = cards.current[step.id]?.getBoundingClientRect();
+          if (!r || r.right < box.left || r.left > box.right) return;
+          const d = Math.abs(r.left + r.width / 2 - x);
+          if (d < best) ((best = d), (nearest = i));
+        });
+      }
+      setActive(nearest);
       setDir(event.key === 'ArrowRight' ? 'next' : 'prev');
       setOpen(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, steps, active]);
 
   const close = () => {
     setOpen(false);
