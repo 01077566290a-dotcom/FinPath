@@ -105,7 +105,7 @@ export function SavingsLines({ base, saving, target, deadline, ariaLabel, saving
             </text>
           </g>
         )}
-        <line x1={left} x2={W - right} y1={y(target)} y2={y(target)} className="rv__target" />
+        <line x1={left} x2={W - right} y1={y(target)} y2={y(target)} className="rv__target" strokeDasharray="6 5" />
         <text x={W - right + 8} y={y(target) - 4} className="rv__value rv__value--ink">
           필요한 돈
         </text>

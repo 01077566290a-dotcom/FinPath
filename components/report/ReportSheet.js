@@ -67,6 +67,7 @@ function ScoreCard({ score }) {
       </header>
       <p className="rs-score__comment">{score.comment}</p>
       {score.action && <p className="rs-score__action">→ {score.action}</p>}
+      <p className="rs-score__legend">막대는 내 값, 세로선은 비교 기준이에요.</p>
       <ul className="rs-score__items">
         {score.items.map(item => (
           <li key={item.id} className={`rs-score__item rs-score__item--${item.level}`}>
@@ -78,21 +79,30 @@ function ScoreCard({ score }) {
               </span>
               <span className={`rs-level rs-level--${item.level}`}>{item.levelLabel}</span>
             </div>
+            {/* 막대 = 내 값, 이름표가 붙은 세로선 = 비교 기준 */}
             <div className="rs-score__bar" aria-hidden="true">
               <span className="rs-score__fill" style={{ width: `${pct(item.value, item.scaleMax)}%` }} />
-              <span className="rs-score__tick" style={{ left: `${pct(item.compare.value, item.scaleMax)}%` }} />
+              <span
+                className="rs-score__tick"
+                style={{ left: `${pct(item.compare.value, item.scaleMax)}%` }}
+                data-edge={pct(item.compare.value, item.scaleMax) > 85 ? 'end' : undefined}
+              >
+                <em>{item.compare.short}</em>
+              </span>
               {item.limit && (
                 <span
                   className="rs-score__tick rs-score__tick--limit"
                   style={{ left: `${pct(item.limit.value, item.scaleMax)}%` }}
-                />
+                >
+                  <em>{item.limit.short}</em>
+                </span>
               )}
             </div>
             <p className="rs-score__compare">
               {item.compare.label} {item.compare.value}
               {item.unit}
               {item.limit && ` · ${item.limit.label} ${item.limit.value}${item.unit}`}
-              <span>{item.points} / 25점</span>
+              <span className="rs-score__pts">{item.points}/25</span>
             </p>
           </li>
         ))}
@@ -111,7 +121,7 @@ function MethodCard({ sections }) {
       </header>
       <div className="rs-method__list">
         {sections.map(section => (
-          <details key={section.id} className="rs-method__item">
+          <details key={section.id} className={`rs-method__item${section.small ? ' rs-method__item--small' : ''}`}>
             <summary>
               <span>{section.title}</span>
               {section.result && <b>{section.result}</b>}
