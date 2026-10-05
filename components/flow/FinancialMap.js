@@ -33,22 +33,17 @@ function writeClosed(value) {
 }
 
 const DONE_KEY = 'finpath.plan-done'; // 단계 완료 표시 (이 브라우저에만 저장)
-// 완료 표시는 '어떤 답으로 만든 타임라인인지'와 함께 저장해요.
-// 답이 바뀌면(새로 입력, 시연 인물 ↔ 내 답) 이전 완료 표시를 쓰지 않아서, 처음 들어갔는데 완료로 보이는 일이 없어요.
-const doneOwner = profile =>
-  JSON.stringify([profile?.purposes, profile?.goal, profile?.money, profile?.detail, profile?.region]);
-function readDone(owner) {
+function readDone() {
   try {
     const data = JSON.parse(window.localStorage.getItem(DONE_KEY) || '{}');
-    if (!data || typeof data !== 'object' || Array.isArray(data) || data.owner !== owner) return {};
-    return data.done && typeof data.done === 'object' ? data.done : {};
+    return data && typeof data === 'object' && !Array.isArray(data) ? data : {};
   } catch {
     return {};
   }
 }
-function writeDone(done, owner = '') {
+function writeDone(done) {
   try {
-    window.localStorage.setItem(DONE_KEY, JSON.stringify({ owner, done }));
+    window.localStorage.setItem(DONE_KEY, JSON.stringify(done));
     return true;
   } catch {
     return false;
@@ -62,13 +57,12 @@ export default function FinancialMap() {
   const roadmap = useMemo(() => buildPlanRoadmap(plan, filterPolicies(profile, policyData)), [plan, profile]);
   const [done, setDone] = useState({});
   const [persistent, setPersistent] = useState(true);
-  const owner = useMemo(() => doneOwner(profile), [profile]);
-  useEffect(() => setDone(readDone(owner)), [owner]);
+  useEffect(() => setDone(readDone()), []);
   function toggleDone(id) {
     setDone(current => {
       const next = { ...current, [id]: !current[id] };
       if (!next[id]) delete next[id];
-      if (!writeDone(next, owner)) setPersistent(false);
+      if (!writeDone(next)) setPersistent(false);
       return next;
     });
   }
@@ -122,14 +116,7 @@ export default function FinancialMap() {
           </button>
         </div>
       </SiteHeader>
-      <SummaryDialog
-        open={summaryOpen}
-        plan={plan}
-        profile={profile}
-        demo={demo}
-        onClose={closeSummary}
-        onOpenReport={summaryToReport}
-      />
+      <SummaryDialog open={summaryOpen} plan={plan} demo={demo} onClose={closeSummary} onOpenReport={summaryToReport} />
       <ReportDialog open={reportOpen} plan={plan} profile={profile} demo={demo} onClose={closeReport} />
       {flow !== 'classic' && <FlowSteps current={4} />}
       <main className="map-page">

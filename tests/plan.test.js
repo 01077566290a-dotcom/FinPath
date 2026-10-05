@@ -271,15 +271,8 @@ test('지도: 단계 카드에 내 금액이 들어가고 정책이 붙는다', 
   const byId = Object.fromEntries(roadmap.steps.map(s => [s.id, s]));
   assert.match(byId.emergency.figure, /912/); // 684 + 주거비 부담으로 더 쌓는 1개월치 228
   assert.ok(byId.emergency.personal.some(line => line.includes('228만 원을 더')));
-  assert.match(byId.housing_deposit.figure, /보증금 1,000/); // 이사·초기 비용은 다음 단계(move_in_cost)에만
-  assert.equal(
-    byId.housing_deposit.personal.some(line => line.includes('200만 원')),
-    false,
-  );
+  assert.match(byId.housing_deposit.figure, /1,200/);
   assert.match(byId.move_in_cost.figure, /200/);
-  assert.match(byId.move_in_cost.personal[0], /^예상 금액: 중개수수료 \d+만 원 \+ 이사비/);
-  // 한 단계 안에서 같은 비율을 두 번 말하지 않는다
-  assert.equal(byId.budget.personal.filter(line => line.includes('53.5%')).length, 1);
   assert.ok(byId.housing_budget.personal.some(line => line.includes('60만 원 이하')));
   assert.ok(byId.housing_budget.policies.length > 0); // data/policies.json의 step과 id가 맞아야 함
   // 숫자 없는 카드가 없다

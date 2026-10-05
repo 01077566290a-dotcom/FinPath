@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 // 링크로 바로 들어왔으면 흐름상 앞 단계(fallback)로 가요. (리포트 → 타임라인 → 입력 → 홈)
 const VIEWS_KEY = 'finpath.views';
 
-// onBack: 화면 안에서 한 칸 뒤로 갈 수 있으면 true를 돌려주는 함수 (예: 입력 화면의 이전 질문)
-export default function BackButton({ fallback = '/', label = '뒤로', onBack }) {
+export default function BackButton({ fallback = '/', label = '뒤로' }) {
   const router = useRouter();
   useEffect(() => {
     try {
@@ -20,7 +19,6 @@ export default function BackButton({ fallback = '/', label = '뒤로', onBack })
   }, []);
 
   const goBack = () => {
-    if (onBack && onBack()) return;
     let views = 0;
     try {
       views = Number(window.sessionStorage.getItem(VIEWS_KEY) || 0);

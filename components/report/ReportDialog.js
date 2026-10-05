@@ -27,10 +27,7 @@ export default function ReportDialog({ open, plan, profile, demo, onClose }) {
       ref={ref}
       className="rp-dialog"
       aria-labelledby="rp-title"
-      onClose={event => {
-        // 안쪽 공유 창이 닫힐 때는 이 팝업을 닫지 않아요
-        if (event.target === ref.current) onClose();
-      }}
+      onClose={onClose}
       onClick={event => {
         if (event.target === ref.current) onClose();
       }}

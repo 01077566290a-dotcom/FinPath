@@ -2,13 +2,12 @@ import Link from 'next/link';
 import BackButton from './BackButton.js';
 
 // back: 뒤로 가기 버튼을 보일 때, 링크로 바로 들어온 경우 돌아갈 주소 (예: '/map')
-// onBack: 화면 안에서 한 칸 뒤로 가기 (입력 화면의 이전 질문). 처리했으면 true
-export function SiteHeader({ children, back, onBack }) {
+export function SiteHeader({ children, back }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
         <div className="site-header__left">
-          {back && <BackButton fallback={back} onBack={onBack} />}
+          {back && <BackButton fallback={back} />}
           <Link href="/" className="brand" aria-label="FinPath 처음으로">
             <span className="brand__mark" aria-hidden="true">
               <svg

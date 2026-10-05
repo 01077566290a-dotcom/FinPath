@@ -1,20 +1,5 @@
 'use client';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { splitAmounts, isRecommendation } from '../../lib/plan/highlight.js';
-
-// 금액에 색: 주황(중요) · 빨강 ▲(늘어남) · 파랑 ▼(줄어듦). 색만으로 구분하지 않게 기호를 붙여요.
-function Highlighted({ line }) {
-  return splitAmounts(line).map((part, i) =>
-    typeof part === 'string' ? (
-      part
-    ) : (
-      <b key={i} className={`amt amt--${part.dir}`}>
-        {part.dir === 'up' ? '▲ ' : part.dir === 'down' ? '▼ ' : ''}
-        {part.amount}
-      </b>
-    ),
-  );
-}
 
 // ④ 누워 있는 타임라인.
 // 가로 줄기 위에 단계 카드를 위·아래로 번갈아 놓고, 시기(지금 · 2027년 1월 …)를 줄기 위에 표시해요.
@@ -102,53 +87,13 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
             <h2 id="spot-title" className="spot__title">
               {step.title}
             </h2>
-            {step.compare ? (
-              // 현재와 권장(목표)을 나란히 비교해요
-              <div
-                className="spot__compare"
-                aria-label={`${step.compare.label}: 현재 ${step.compare.now}, ${step.compare.recLabel ?? '권장'} ${step.compare.rec}`}
-              >
-                <p className="spot__compare-label">{step.compare.label}</p>
-                <div className="spot__compare-row">
-                  <span className="spot__compare-now">
-                    <small>현재</small>
-                    <b>{step.compare.now}</b>
-                  </span>
-                  <span className="spot__compare-arrow" aria-hidden="true">
-                    →
-                  </span>
-                  <span className="spot__compare-rec">
-                    <small>{step.compare.recLabel ?? '권장'}</small>
-                    <b>{step.compare.rec}</b>
-                  </span>
-                </div>
-              </div>
-            ) : (
-              step.figure && (
-                <p className="spot__figure">
-                  {step.figureLabel && <em>{step.figureLabel}</em>}
-                  {step.figure}
-                </p>
-              )
-            )}
+            {step.figure && <p className="spot__figure">{step.figure}</p>}
             {step.personal.length > 0 && (
-              <>
-                <ul className="spot__personal">
-                  {step.personal.map(line => (
-                    <li key={line} className={isRecommendation(line) ? 'is-rec' : undefined}>
-                      <span>
-                        <Highlighted line={line} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="spot__legend" aria-hidden="true">
-                  <span className="amt amt--key">중요한 금액</span>
-                  <span className="amt amt--up">▲ 늘어나는 돈</span>
-                  <span className="amt amt--down">▼ 줄어드는 돈</span>
-                  <span className="spot__legend-rec">권장·조정</span>
-                </p>
-              </>
+              <ul className="spot__personal">
+                {step.personal.map(line => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
             )}
             <p className="spot__why">{step.why}</p>
             {step.how.length > 0 && (
@@ -257,7 +202,7 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
     const ratio = Math.min(1, Math.max(0, (f.x - rect.left - rect.width * 0.12) / (rect.width * 0.76)));
     const target = ratio * max;
     const gap = target - box.scrollLeft;
-    box.scrollLeft = Math.abs(gap) < 0.5 ? target : box.scrollLeft + gap * 0.045;
+    box.scrollLeft = Math.abs(gap) < 0.5 ? target : box.scrollLeft + gap * 0.09;
     magnify(f.x);
     f.raf = requestAnimationFrame(tick);
   }, [magnify]);
@@ -364,77 +309,59 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
           <span className="track__done">
             {doneCount} / {steps.length} 완료
           </span>
+          <button type="button" className="track__arrow" aria-label="타임라인 왼쪽으로" onClick={() => scrollBy(-480)}>
+            ‹
+          </button>
+          <button type="button" className="track__arrow" aria-label="타임라인 오른쪽으로" onClick={() => scrollBy(480)}>
+            ›
+          </button>
         </div>
       </div>
 
-      <div className="track__frame">
-        {/* 타임라인 안 양옆의 이동 버튼 */}
-        <button
-          type="button"
-          className="track__arrow track__arrow--left"
-          aria-label="타임라인 왼쪽으로"
-          onClick={() => scrollBy(-480)}
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          className="track__arrow track__arrow--right"
-          aria-label="타임라인 오른쪽으로"
-          onClick={() => scrollBy(480)}
-        >
-          ›
-        </button>
-        <div
-          className="track__viewport"
-          ref={viewport}
-          onPointerEnter={startFollow}
-          onPointerMove={startFollow}
-          onPointerLeave={stopFollow}
-        >
-          <ol className="track__rail">
-            {steps.map((step, i) => (
-              <Fragment key={step.id}>
-                {(i === 0 || steps[i - 1].phaseLabel !== step.phaseLabel) && (
-                  <li className="track__phase" aria-hidden="true">
-                    <span>{step.phaseLabel}</span>
-                  </li>
-                )}
-                <li
-                  className={`track__step track__step--${i % 2 ? 'down' : 'up'}${i === active ? ' is-active' : ''}${done[step.id] ? ' is-done' : ''}`}
-                >
-                  <button
-                    type="button"
-                    ref={el => {
-                      cards.current[step.id] = el;
-                    }}
-                    className="track__card"
-                    aria-label={`${step.number}번 ${step.title}, ${step.phaseLabel}${done[step.id] ? ' (완료)' : ''}. 눌러서 크게 보기`}
-                    onFocus={() => setActive(i)}
-                    onClick={() => {
-                      setDir(i >= active ? 'next' : 'prev');
-                      setActive(i);
-                      setOpen(true);
-                    }}
-                  >
-                    <span className="track__title">{step.title}</span>
-                    {step.figure && (
-                      <span className="track__figure">
-                        {step.figureLabel && <em>{step.figureLabel}</em>}
-                        {step.figure}
-                      </span>
-                    )}
-                    {step.policies.length > 0 && <span className="track__policy">정책 {step.policies.length}개</span>}
-                  </button>
-                  <span className="track__stem" aria-hidden="true" />
-                  <span className="track__node" aria-hidden="true">
-                    {done[step.id] ? <Check /> : step.number}
-                  </span>
+      <div
+        className="track__viewport"
+        ref={viewport}
+        onPointerEnter={startFollow}
+        onPointerMove={startFollow}
+        onPointerLeave={stopFollow}
+      >
+        <ol className="track__rail">
+          {steps.map((step, i) => (
+            <Fragment key={step.id}>
+              {(i === 0 || steps[i - 1].phaseLabel !== step.phaseLabel) && (
+                <li className="track__phase" aria-hidden="true">
+                  <span>{step.phaseLabel}</span>
                 </li>
-              </Fragment>
-            ))}
-          </ol>
-        </div>
+              )}
+              <li
+                className={`track__step track__step--${i % 2 ? 'down' : 'up'}${i === active ? ' is-active' : ''}${done[step.id] ? ' is-done' : ''}`}
+              >
+                <button
+                  type="button"
+                  ref={el => {
+                    cards.current[step.id] = el;
+                  }}
+                  className="track__card"
+                  aria-label={`${step.number}번 ${step.title}, ${step.phaseLabel}${done[step.id] ? ' (완료)' : ''}. 눌러서 크게 보기`}
+                  onFocus={() => setActive(i)}
+                  onClick={() => {
+                    setDir(i >= active ? 'next' : 'prev');
+                    setActive(i);
+                    setOpen(true);
+                  }}
+                >
+                  <span className="track__title">{step.title}</span>
+                  {step.figure && <span className="track__figure">{step.figure}</span>}
+                  {step.policies.length > 0 && <span className="track__policy">정책 {step.policies.length}개</span>}
+                </button>
+                <span className="track__stem" aria-hidden="true" />
+                <span className="track__node" aria-hidden="true">
+                  {done[step.id] ? <Check /> : step.number}
+                </span>
+              </li>
+            </Fragment>
+          ))}
+        </ol>
       </div>
 
       <Spotlight

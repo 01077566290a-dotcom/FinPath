@@ -32,8 +32,8 @@ import { useFlowMode } from '../../lib/flowMode.js';
 
 export default function GoalQuestions() {
   const [state, setState] = useState(null); // { answers, persistent }
+  const [history, setHistory] = useState([]); // 지나온 질문 id (이전 질문 버튼용)
   const [editingId, setEditingId] = useState(null);
-  const [editFrom, setEditFrom] = useState(null); // 'back'(이전으로 돌아옴) | 'summary'(확인 화면에서 고치기)
   const classic = useFlowMode() === 'classic'; // 이전 흐름으로 보기 (lib/flowMode.js)
 
   useEffect(() => setState(loadAnswers()), []);
@@ -50,50 +50,26 @@ export default function GoalQuestions() {
     const result = value === 'skipped' ? skip(answers, question.id) : answer(answers, question.id, value);
     if (result.error) return result.error;
     commit(result.answers);
-    if (editingId) {
-      setEditingId(null);
-      setEditFrom(null);
-    }
+    if (editingId) setEditingId(null);
+    else setHistory(h => [...h, question.id]);
     return null;
   };
-  // 지금 질문 바로 앞의 질문 (입력 순서 기준)
-  const prevOf = id => {
-    const list = visibleQuestions(answers);
-    const i = list.findIndex(q => q.id === id);
-    return i > 0 ? list[i - 1].id : null;
-  };
-  // 한 칸 뒤로. 처리했으면 true (헤더 '뒤로'도 이걸 먼저 써요)
   const onBack = () => {
-    if (editingId && editFrom === 'summary') {
-      setEditingId(null);
-      setEditFrom(null);
-      return true;
-    }
-    const prev = question ? prevOf(question.id) : visibleQuestions(answers).at(-1)?.id;
-    if (!prev) return false;
+    if (editingId) return setEditingId(null);
+    const prev = history[history.length - 1];
+    if (!prev) return;
+    setHistory(h => h.slice(0, -1));
     setEditingId(prev);
-    setEditFrom('back');
-    return true;
-  };
-  const editFromSummary = id => {
-    setEditingId(id);
-    setEditFrom('summary');
   };
   const onReset = () => {
     clearAll();
-    try {
-      window.localStorage.removeItem('finpath.plan-done'); // 타임라인 완료 표시도 처음부터
-    } catch {
-      // 저장소가 막혀 있으면 그냥 넘어가요
-    }
+    setHistory([]);
     setEditingId(null);
-    setEditFrom(null);
     setState(s => ({ ...s, answers: {} }));
   };
 
   return (
     <Page
-      onBack={onBack} // 확인 화면에서도 헤더 '뒤로'는 마지막 질문으로 한 칸
       persistent={persistent}
       step={question ? stageOf(question) : 3}
       fill={question && !editingId ? stageFill(answers, stageOf(question)) : null}
@@ -106,12 +82,12 @@ export default function GoalQuestions() {
           answers={answers}
           current={answers[question.id]}
           onSubmit={onSubmit}
-          onBack={question && (prevOf(question.id) || editFrom === 'summary') ? onBack : null}
-          editing={editFrom === 'summary'}
+          onBack={history.length || editingId ? onBack : null}
+          editing={Boolean(editingId)}
           classic={classic}
         />
       ) : (
-        <Summary answers={answers} onEdit={editFromSummary} onReset={onReset} classic={classic} />
+        <Summary answers={answers} onEdit={setEditingId} onReset={onReset} classic={classic} />
       )}
     </Page>
   );
@@ -124,10 +100,10 @@ function stageFill(answers, stage) {
   return { ratio: inStage.length ? done / inStage.length : 0, done, total: inStage.length };
 }
 
-function Page({ persistent, step = 1, fill = null, classic = false, onBack = null, children }) {
+function Page({ persistent, step = 1, fill = null, classic = false, children }) {
   return (
     <>
-      <SiteHeader back="/" onBack={onBack}>
+      <SiteHeader back="/">
         <span className="site-header__tagline">내 돈 상황 입력</span>
       </SiteHeader>
       {!classic && <FlowSteps current={step} fill={fill} />}
@@ -183,14 +159,8 @@ function QuestionView({ question, answers, current, onSubmit, onBack, editing, c
 
       <div className="flow-nav">
         {onBack ? (
-          <button type="button" className="btn btn--outline btn--md goal-prev" onClick={onBack}>
-            {editing ? (
-              '취소'
-            ) : (
-              <>
-                <span aria-hidden="true">←</span> 이전
-              </>
-            )}
+          <button type="button" className="btn btn--ghost" onClick={onBack}>
+            {editing ? '취소' : '이전 질문'}
           </button>
         ) : (
           <Link href="/" className="btn btn--ghost">
@@ -272,7 +242,7 @@ function draftToValue(question, draft) {
   }
 }
 
-// 입력한 숫자를 바로 읽어 줘요. (예: 12000 → 1억 2,000만 원, 36개월 → 3년)
+// 입력한 숫자를 바로 읽어 줘요. (예: 1500 → 1,500만 원 = 15,000,000원, 36개월 → 3년)
 export function readAmount(value, unit) {
   const n = parseAmount(value);
   if (!Number.isFinite(n)) return null;
@@ -280,8 +250,10 @@ export function readAmount(value, unit) {
     if (n === 0) return '0원';
     const eok = Math.floor(n / 10000);
     const rest = n % 10000;
-    // 1억 이상일 때만 '1억 2,000만 원'처럼 읽어 줘요. (그보다 작으면 칸 옆 '만 원'으로 충분해요)
-    return eok ? `${eok.toLocaleString()}억${rest ? ` ${rest.toLocaleString()}만` : ''} 원` : null;
+    const words = eok
+      ? `${eok.toLocaleString()}억${rest ? ` ${rest.toLocaleString()}만` : ''} 원`
+      : `${n.toLocaleString()}만 원`;
+    return `${words} = ${(n * 10000).toLocaleString()}원`;
   }
   if (unit === '개월' && n >= 12) return `${Math.floor(n / 12)}년${n % 12 ? ` ${n % 12}개월` : ''}`;
   return null;
@@ -310,11 +282,11 @@ function QuickPicks({ values, unit, onPick, label, current }) {
 
 const readShort = n => (n >= 10000 && n % 10000 === 0 ? `${n / 10000}억` : `${n.toLocaleString()}만`);
 
-function NumberField({ id, label, unit, value, onChange, quick, prefix, short }) {
+function NumberField({ id, label, unit, value, onChange, quick }) {
   const reading = readAmount(value, unit);
   return (
     <div className="goal-field-wrap">
-      <NumberInput id={id} label={label} unit={unit} value={value} onChange={onChange} prefix={prefix} short={short} />
+      <NumberInput id={id} label={label} unit={unit} value={value} onChange={onChange} />
       {reading && (
         <p className="goal-reading" aria-live="polite">
           {reading}
@@ -325,12 +297,11 @@ function NumberField({ id, label, unit, value, onChange, quick, prefix, short })
   );
 }
 
-function NumberInput({ id, label, unit, value, onChange, prefix, short }) {
+function NumberInput({ id, label, unit, value, onChange }) {
   return (
     <label className="goal-field" htmlFor={id}>
       {label && <span className="goal-field__label">{label}</span>}
-      <span className={`goal-field__box${short ? ' goal-field__box--short' : ''}`}>
-        {prefix && <span className="goal-field__unit goal-field__prefix">{prefix}</span>}
+      <span className="goal-field__box">
         <input
           id={id}
           type="text"
@@ -366,17 +337,7 @@ function Input({ question, answers, draft, setDraft, onPick }) {
   const quick = typeof q.quick === 'function' ? q.quick(answers) : q.quick;
   switch (q.type) {
     case 'number':
-      return (
-        <NumberField
-          id={`f-${q.id}`}
-          unit={q.unit}
-          prefix={q.prefix}
-          short={q.short}
-          value={draft}
-          onChange={setDraft}
-          quick={quick}
-        />
-      );
+      return <NumberField id={`f-${q.id}`} unit={q.unit} value={draft} onChange={setDraft} quick={quick} />;
     case 'numbers':
       return (
         <div className="goal-fields">
@@ -576,7 +537,7 @@ function show(question, value) {
   if (value === 'skipped') return '건너뜀';
   switch (question.type) {
     case 'number':
-      return `${question.prefix ? `${question.prefix} ` : ''}${value.toLocaleString()}${question.unit === '%' || question.unit === '세' ? question.unit : ` ${question.unit}`}`;
+      return `${value.toLocaleString()}${question.unit === '%' ? '%' : ` ${question.unit}`}`;
     case 'numbers':
       return question.fields.map(f => `${f.label} ${value[f.key].toLocaleString()} ${f.unit}`).join(', ');
     case 'items': {
