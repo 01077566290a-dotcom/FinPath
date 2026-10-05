@@ -5,6 +5,7 @@ import { viewFromPlan, monthsWithExtra, savingsLine } from '../../lib/report/fro
 import { money, monthLabel, duration } from '../../lib/report/format.js';
 import { SavingsLines } from './charts.js';
 import PlanSection from './PlanSection.js';
+import Trio from './Trio.js';
 import { useFlowMode } from '../../lib/flowMode.js';
 import { scoreFromPlan } from '../../lib/report/score.js';
 import { methodFromPlan } from '../../lib/report/method.js';
@@ -187,7 +188,8 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
               : ['모으는 돈', `1년 +${money(extra * 12)}`, '여유가 더 늘어요'];
 
   // 진행 막대: 모아둔 돈 · 앞으로 모을 돈 · 부족분 (기한이 있을 때)
-  const hasDeadline = core.deadline !== null;
+  // 투자만 고른 경우는 진행 막대 대신 투자 숫자만 보여줘요
+  const hasDeadline = core.deadline !== null && !view.investOnly;
   const scale = Math.max(core.needed, core.collectable ?? 0, 1);
   const goalAt = core.goal ? pct(core.goal, scale) : null;
 
@@ -220,30 +222,15 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
 
       {/* 1. 핵심: 모을 수 있는 돈 */}
       <section className="rs-card rs-hero" aria-labelledby="rs-hero-title">
-        {hasDeadline ? (
+        {hasDeadline || view.investOnly ? (
           <>
             <p id="rs-hero-title" className="rs-hero__label">
-              {view.purposeLabel} · {core.deadlineLabel}까지
+              {view.investOnly
+                ? `${view.purposeLabel} · ${view.investOnly.months}개월`
+                : `${view.purposeLabel} · ${core.deadlineLabel}까지`}
             </p>
-            {/* 시연의 첫 장면: 생각한 목표 vs 실제로 필요한 돈 vs 모을 수 있는 돈 */}
-            <dl className={`rs-trio${core.goal ? '' : ' rs-trio--two'}`}>
-              {core.goal ? (
-                <div className="rs-trio__item rs-trio__item--goal">
-                  <dt>생각한 목표</dt>
-                  <dd>{money(core.goal)}</dd>
-                </div>
-              ) : null}
-              <div className="rs-trio__item rs-trio__item--need">
-                <dt>실제로 필요한 돈</dt>
-                <dd>{money(core.needed)}</dd>
-                {core.goal && core.goalDiff > 0 ? <small>생각보다 {money(core.goalDiff)} 더</small> : null}
-              </div>
-              <div className="rs-trio__item rs-trio__item--can">
-                <dt>모을 수 있는 돈</dt>
-                <dd>{money(core.collectable)}</dd>
-                <small>{core.deadlineLabel}까지</small>
-              </div>
-            </dl>
+            {/* 시연의 첫 장면: 생각한 목표 vs 실제로 필요한 돈 vs 모을 수 있는 돈 (투자만이면 투자 숫자) */}
+            <Trio view={view} />
           </>
         ) : (
           <>
@@ -251,7 +238,7 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
               {`${view.purposeLabel}에 필요한 돈`}
             </p>
             <p className="rs-hero__amount">
-              {money(hasDeadline ? core.collectable : core.needed, { unit: false })}
+              {money(core.needed, { unit: false })}
               <span>원</span>
             </p>
             <p className="rs-hero__need">

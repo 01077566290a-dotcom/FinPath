@@ -5,6 +5,7 @@ import { scoreFromPlan } from '../../lib/report/score.js';
 import { money } from '../../lib/report/format.js';
 import Link from 'next/link';
 import ShareMenu from './ShareMenu.js';
+import Trio from './Trio.js';
 
 // '결과 보기'로 들어오면 타임라인 위에 바로 뜨는 결과 요약 (한 화면).
 // 세 숫자(생각한 목표 · 실제로 필요한 돈 · 모을 수 있는 돈) + 점수와 한마디 + 할 일 하나.
@@ -44,12 +45,7 @@ export default function SummaryDialog({ open, plan, profile, demo, onClose, onOp
         <div className="sum__body">
           {/* 오른쪽 위 작은 버튼: 공유 · 저장(PDF) */}
           <div className="sum__tools">
-            <ShareMenu
-              small
-              profile={profile}
-              demo={demo}
-              summary={`FinPath 맞춤 리포트: 실제로 필요한 돈 ${core.needed.toLocaleString()}만 원`}
-            />
+            <ShareMenu small profile={profile} demo={demo} summary={`FinPath 맞춤 리포트: ${verdict.headline}`} />
             <Link href="/report?print=1" className="icon-btn" aria-label="PDF로 저장" title="PDF로 저장">
               <svg
                 width="16"
@@ -75,25 +71,8 @@ export default function SummaryDialog({ open, plan, profile, demo, onClose, onOp
             {verdict.headline}
           </h2>
 
-          {hasDeadline ? (
-            <dl className={`rs-trio sum__trio${core.goal ? '' : ' rs-trio--two'}`}>
-              {core.goal ? (
-                <div className="rs-trio__item rs-trio__item--goal">
-                  <dt>생각한 목표</dt>
-                  <dd>{money(core.goal)}</dd>
-                </div>
-              ) : null}
-              <div className="rs-trio__item rs-trio__item--need">
-                <dt>실제로 필요한 돈</dt>
-                <dd>{money(core.needed)}</dd>
-                {core.goal && core.goalDiff > 0 ? <small>생각보다 {money(core.goalDiff)} 더</small> : null}
-              </div>
-              <div className="rs-trio__item rs-trio__item--can">
-                <dt>모을 수 있는 돈</dt>
-                <dd>{money(core.collectable)}</dd>
-                <small>{core.deadlineLabel}까지</small>
-              </div>
-            </dl>
+          {hasDeadline || view.investOnly ? (
+            <Trio view={view} className="sum__trio" />
           ) : (
             <p className="sum__need">
               필요한 돈 <b>{money(core.needed)}</b> ·{' '}

@@ -89,3 +89,76 @@ test('줄일 지출을 답하지 않으면 리포트에서 고를 예시 항목�
     false,
   ); // 답한 항목이 있으면 그 항목을 써요
 });
+
+const INVEST_ONLY = [
+  ['purposes', ['투자']],
+  ['goal', { amount: 1000, months: 36 }],
+  ['income', 280],
+  ['saving_now', 90],
+  ['saved', 500],
+  ['has_debt', 'no'],
+  ['invest_months', 60],
+  ['invest_monthly', 30],
+  ['region', { sido: '경기', sigungu: null }],
+  ['age', 29],
+];
+
+test('투자만 고르면 "필요한 돈 0만 원·목표 준비도 0%" 대신 투자 숫자로 보여 준다', () => {
+  const plan = planOf(INVEST_ONLY);
+  const view = viewFromPlan(plan);
+  assert.equal(view.status, 'invest');
+  assert.deepEqual(view.investOnly, { cap: 30, months: 60, possible: 30, total: 1800 });
+  assert.match(view.verdict.headline, /매달 30만 원씩 투자할 수 있어요/);
+  const goal = scoreFromPlan(plan).items.find(i => i.id === 'goal');
+  assert.equal(goal.label, '투자 여력');
+  assert.equal(goal.value, 100);
+});
+
+test('기한까지 부족한 돈이 있으면 점수가 높아도 "아주 좋아요"를 주지 않는다', () => {
+  const plan = planOf([
+    ['purposes', ['주거', '투자']],
+    ['goal', { amount: 5000, months: 24 }],
+    ['income', 320],
+    ['saving_now', 120],
+    ['saved', 2000],
+    ['has_debt', 'yes'],
+    ['debt', { remain: 1500, monthly: 30 }],
+    ['housing_type', '전세'],
+    ['deposit', 15000],
+    ['move_in', '2028-03'],
+    ['commute_now', 10],
+    ['commute_after', 5],
+    ['loan_plan', '예'],
+    ['loan_amount', 10000],
+    ['invest_months', 36],
+    ['invest_monthly', 20],
+    ['region', { sido: '경기', sigungu: null }],
+    ['age', 29],
+  ]);
+  assert.ok(plan.core.gap > 0);
+  const score = scoreFromPlan(plan);
+  assert.notEqual(score.grade, '아주 좋아요');
+  // 전세는 월세가 없어서 주거비 비중 대신 빚 상환 비중으로 봐요
+  assert.deepEqual(
+    score.items.map(i => i.id),
+    ['saving', 'emergency', 'goal', 'debt'],
+  );
+});
+
+test('목표 금액·기간을 모른다고 하면 임의의 준비도 대신 "다 모으는 속도"로 본다', () => {
+  const plan = planOf([
+    ['purposes', ['비상자금']],
+    ['goal', 'unknown'],
+    ['income', 230],
+    ['saving_now', 40],
+    ['saved', 150],
+    ['has_debt', 'no'],
+    ['employment', '계약직'],
+    ['region', { sido: '경기', sigungu: null }],
+    ['age', 29],
+  ]);
+  const goal = scoreFromPlan(plan).items.find(i => i.id === 'goal');
+  assert.equal(goal.label, '다 모으는 속도');
+  assert.equal(goal.value, plan.core.monthsNeeded <= 36 ? 80 : 60);
+  assert.match(goal.compare.label, /에 다 모음/);
+});

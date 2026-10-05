@@ -93,7 +93,7 @@ export default function GoalQuestions() {
 
   return (
     <Page
-      onBack={question || editingId ? onBack : null}
+      onBack={onBack} // 확인 화면에서도 헤더 '뒤로'는 마지막 질문으로 한 칸
       persistent={persistent}
       step={question ? stageOf(question) : 3}
       fill={question && !editingId ? stageFill(answers, stageOf(question)) : null}
