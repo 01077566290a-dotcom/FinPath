@@ -93,7 +93,13 @@ export default function FinancialMap() {
     setSummaryOpen(false);
     setReportOpen(true);
   }
+  // '맞춤 리포트 받기': ⑤ 리포트 화면으로 넘어가요 (이전 흐름에서는 리포트 팝업)
   function openReport() {
+    if (flow !== 'classic') {
+      writeClosed(true);
+      router.push('/report');
+      return;
+    }
     writeClosed(false);
     setReportOpen(true);
   }
