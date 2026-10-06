@@ -43,10 +43,14 @@ test('점수 규칙: 항목별 25점, 기준값에 맞춰 움직인다', () => {
   assert.equal(debtScore(20), 0);
 });
 
-test('정하은: 64점 "잘하고 있어요", 아쉬운 점은 독립 후 저축률', () => {
+test('정하은: 항목 합계 64점에서 기한 부족 감점 → 58점, 아쉬운 점은 독립 후 저축률', () => {
   const score = scoreFromPlan(demoPlan());
-  assert.equal(score.total, 64);
-  assert.equal(score.grade, '잘하고 있어요');
+  assert.equal(score.total, 58);
+  assert.equal(score.grade, '조금만 더 해봐요');
+  assert.deepEqual(
+    score.penalties.map(p => p.id),
+    ['short'],
+  );
   assert.deepEqual(
     score.items.map(i => i.id),
     ['saving', 'emergency', 'goal', 'housing'],
@@ -138,11 +142,12 @@ test('기한까지 부족한 돈이 있으면 점수가 높아도 "아주 좋아
   assert.ok(plan.core.gap > 0);
   const score = scoreFromPlan(plan);
   assert.notEqual(score.grade, '아주 좋아요');
-  // 전세는 월세가 없어서 주거비 비중 대신 빚 상환 비중으로 봐요
+  // 전세 대출 이자(연 4% 추정)가 독립 후 주거비가 되어 주거비 비중으로 봐요
   assert.deepEqual(
     score.items.map(i => i.id),
-    ['saving', 'emergency', 'goal', 'debt'],
+    ['saving', 'emergency', 'goal', 'housing'],
   );
+  assert.equal(plan.cashflow.loanInterest, 33); // 1억 × 4% ÷ 12
 });
 
 test('목표 금액·기간을 모른다고 하면 임의의 준비도 대신 "다 모으는 속도"로 본다', () => {

@@ -2638,3 +2638,24 @@ a.flow-steps__link:hover > span:last-child {
 .rs-score__tick em {
   font-size: 12px;
 }
+
+/* 점수 감점: 항목 합계에서 빼는 점수 */
+.rs-score__penalties {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--ds-sunken);
+  font-size: 14px;
+}
+.rs-score__penalties li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rs-score__penalties b {
+  color: var(--ds-danger, #c62828);
+  white-space: nowrap;
+}
