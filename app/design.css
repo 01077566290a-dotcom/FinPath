@@ -1726,8 +1726,10 @@ a.flow-steps__link:hover > span:last-child {
   line-height: 1.35;
 }
 .track__figure {
-  padding: 3px 9px;
-  border-radius: 999px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  line-height: 1.4;
+  word-break: keep-all; /* 목표 문장이 두 줄이 돼도 낱말 가운데서 끊지 않아요 */
   background: var(--ds-money-soft);
   color: var(--ds-money);
   font-size: 12px;
@@ -2445,24 +2447,17 @@ a.flow-steps__link:hover > span:last-child {
   border-right: 1px solid rgba(11, 122, 82, 0.3);
 }
 
-/* 상세: 현재 → 권장을 한 줄로 */
-.spot__compare {
+/* 상세 맨 위: 목표 칸 + 지금 값(회색) */
+.spot__goal {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-  margin: 0;
-  font-size: 16px;
+  align-items: center;
+  gap: 6px 12px;
+}
+.spot__now {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--ds-ink-3);
-}
-.spot__compare-label {
-  font-size: 13px;
-  font-weight: 700;
-  margin-right: 4px;
-}
-.spot__compare b {
-  font-weight: 800;
-  color: var(--ds-ink);
 }
 
 /* 상세 설명의 금액: 굵게만, 줄어드는 돈만 빨강 */

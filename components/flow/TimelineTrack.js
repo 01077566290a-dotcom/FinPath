@@ -23,8 +23,8 @@ function Highlighted({ line }) {
 // 기존 전체 지도(MapBoard)와 같은 roadmap 데이터를 써서 완료 표시가 서로 이어져요.
 
 const SWIPE = 50;
-// 카드에는 짧게 보여 줘요: '73만 원 (29.8%)' → '73만 원'
-const short = text => String(text).replace(/\s*\([^)]*\)\s*$/, '');
+// 목표 문장이 두 줄이 돼도 '55만 원' 같은 금액은 한 덩어리로 (사이 공백을 줄바꿈 없는 공백으로)
+const keepAmount = text => text.replace(/만 원/g, '만 원');
 const isTyping = t => ['INPUT', 'TEXTAREA', 'SELECT'].includes(t?.tagName) || t?.isContentEditable;
 const Check = () => (
   <svg
@@ -105,21 +105,15 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
             <h2 id="spot-title" className="spot__title">
               {step.title}
             </h2>
-            {step.compare ? (
-              // 현재와 권장(목표)을 한 줄로 비교해요
-              <p className="spot__compare">
-                <span className="spot__compare-label">{step.compare.label}</span>
-                <b>{step.compare.now}</b>
-                <span aria-hidden="true">→</span>
-                <b>{step.compare.same ? step.compare.rec : `${step.compare.recLabel} ${step.compare.rec}`}</b>
-              </p>
-            ) : (
-              step.figure && (
+            {step.figure && (
+              // 카드와 같은 '목표' 칸 + 비교할 지금 값이 있으면 회색으로
+              <div className="spot__goal">
                 <p className="spot__figure">
-                  {step.figureLabel && <em>{step.figureLabel}</em>}
-                  {step.figure}
+                  <em>목표</em>
+                  {keepAmount(step.figure)}
                 </p>
-              )
+                {step.now && <span className="spot__now">지금 {step.now}</span>}
+              </div>
             )}
             {step.personal.length > 0 && (
               <>
@@ -404,19 +398,12 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
                     }}
                   >
                     <span className="track__title">{step.title}</span>
-                    {step.compare ? (
-                      // 카드에는 해야 할 숫자 하나만 (권장 수준이면 지금 값)
+                    {step.figure && (
+                      // 초록 칸 = 이 단계의 목표
                       <span className="track__figure">
-                        <em>{step.compare.recLabel}</em>
-                        {short(step.compare.same ? step.compare.now : step.compare.rec)}
+                        <em>목표</em>
+                        {keepAmount(step.figure)}
                       </span>
-                    ) : (
-                      step.figure && (
-                        <span className="track__figure">
-                          {step.figureLabel && <em>{step.figureLabel}</em>}
-                          {step.figure}
-                        </span>
-                      )
                     )}
                     {step.policies.length > 0 && <span className="track__policy">정책 {step.policies.length}개</span>}
                   </button>

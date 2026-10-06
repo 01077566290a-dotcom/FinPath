@@ -274,10 +274,14 @@ test('지도: 단계 카드에 내 금액이 들어가고 정책이 붙는다', 
   // '이렇게 해보세요'에 내 숫자와 공식 사이트 바로 가기
   assert.ok(byId.cashflow.how.some(line => line.includes('245만 원')));
   assert.ok(byId.contract_check.links.some(link => link.url.includes('iros.go.kr')));
-  // 현재와 권장이 같으면 같은 숫자를 두 번 쓰지 않는다
-  for (const step of roadmap.steps.filter(s => s.compare)) {
-    assert.notEqual(step.compare.now, step.compare.rec);
+  // 초록 칸은 모든 단계에서 '이 단계의 목표' 한 문장, 지금 값은 있는 단계에만
+  for (const step of roadmap.steps) {
+    assert.ok(step.figure, step.id);
+    assert.ok(!('figureLabel' in step) && !('compare' in step), step.id);
   }
+  assert.equal(byId.saving_method.figure, `매달 ${byId.saving_method.how[1].match(/\d[\d,]*만 원/)[0]} 자동이체`);
+  assert.match(byId.housing_budget.now, /^계획 68만 원$/);
+  assert.equal(byId.housing_search.now, null);
   // 한 단계 안에서 같은 비율을 두 번 말하지 않는다
   assert.equal(byId.budget.personal.filter(line => line.includes('53.5%')).length, 1);
   assert.ok(byId.housing_budget.personal.some(line => line.includes('60만 원 이하')));
