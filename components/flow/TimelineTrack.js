@@ -2,13 +2,13 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { splitAmounts, isRecommendation } from '../../lib/plan/highlight.js';
 
-// 금액에 글자 색: 주황(중요) · 빨강(늘어남) · 파랑(줄어듦). 아래 범례로 색의 뜻을 알려 줘요.
+// 금액은 굵게만 하고, 줄어드는 돈만 빨강으로 눈에 띄게 해요.
 function Highlighted({ line }) {
   return splitAmounts(line).map((part, i) =>
     typeof part === 'string' ? (
       part
     ) : (
-      <b key={i} className={`amt amt--${part.dir}`}>
+      <b key={i} className={part.dir === 'down' ? 'amt amt--down' : 'amt'}>
         {part.amount}
       </b>
     ),
@@ -46,6 +46,8 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
   const ref = useRef(null);
   const start = useRef(null);
   const step = steps[index];
+  // 형광펜은 한 단계에 한 줄만: 첫 권장·조정 문장
+  const recLine = step ? step.personal.findIndex(isRecommendation) : -1;
 
   useEffect(() => {
     const dialog = ref.current;
@@ -104,26 +106,13 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
               {step.title}
             </h2>
             {step.compare ? (
-              // 현재와 권장(목표)을 나란히 비교해요
-              <div
-                className="spot__compare"
-                aria-label={`${step.compare.label}: 현재 ${step.compare.now}, ${step.compare.recLabel ?? '권장'} ${step.compare.rec}`}
-              >
-                <p className="spot__compare-label">{step.compare.label}</p>
-                <div className="spot__compare-row">
-                  <span className="spot__compare-now">
-                    <small>현재</small>
-                    <b>{step.compare.now}</b>
-                  </span>
-                  <span className="spot__compare-arrow" aria-hidden="true">
-                    →
-                  </span>
-                  <span className="spot__compare-rec">
-                    {!step.compare.same && <small>{step.compare.recLabel ?? '권장'}</small>}
-                    <b>{step.compare.rec}</b>
-                  </span>
-                </div>
-              </div>
+              // 현재와 권장(목표)을 한 줄로 비교해요
+              <p className="spot__compare">
+                <span className="spot__compare-label">{step.compare.label}</span>
+                <b>{step.compare.now}</b>
+                <span aria-hidden="true">→</span>
+                <b>{step.compare.same ? step.compare.rec : `${step.compare.recLabel} ${step.compare.rec}`}</b>
+              </p>
             ) : (
               step.figure && (
                 <p className="spot__figure">
@@ -135,20 +124,14 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
             {step.personal.length > 0 && (
               <>
                 <ul className="spot__personal">
-                  {step.personal.map(line => (
-                    <li key={line} className={isRecommendation(line) ? 'is-rec' : undefined}>
+                  {step.personal.map((line, i) => (
+                    <li key={line} className={i === recLine ? 'is-rec' : undefined}>
                       <span>
                         <Highlighted line={line} />
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className="spot__legend" aria-hidden="true">
-                  <span className="amt amt--key">중요한 금액</span>
-                  <span className="amt amt--up">늘어나는 돈</span>
-                  <span className="amt amt--down">줄어드는 돈</span>
-                  <span className="spot__legend-rec">권장·조정</span>
-                </p>
               </>
             )}
             <p className="spot__why">{step.why}</p>
@@ -422,17 +405,10 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
                   >
                     <span className="track__title">{step.title}</span>
                     {step.compare ? (
-                      // 현재 → 권장(목표) 두 칸
-                      <span className="track__compare">
-                        <span>
-                          <small>현재</small>
-                          {short(step.compare.now)}
-                        </span>
-                        <span aria-hidden="true">→</span>
-                        <span className={`track__compare-rec${step.compare.same ? ' is-same' : ''}`}>
-                          {!step.compare.same && <small>{step.compare.recLabel}</small>}
-                          {short(step.compare.rec)}
-                        </span>
+                      // 카드에는 해야 할 숫자 하나만 (권장 수준이면 지금 값)
+                      <span className="track__figure">
+                        <em>{step.compare.recLabel}</em>
+                        {short(step.compare.same ? step.compare.now : step.compare.rec)}
                       </span>
                     ) : (
                       step.figure && (

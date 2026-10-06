@@ -8,7 +8,7 @@ import Trio from './Trio.js';
 
 // '결과 보기'로 들어오면 타임라인 위에 바로 뜨는 결과 요약 (한 화면).
 // 세 숫자(생각한 목표 · 실제로 필요한 돈 · 모을 수 있는 돈) + 점수와 한마디 + 할 일 하나.
-// [타임라인 따라가기]로 닫고, [전체 리포트 보기]로 전체 리포트 팝업을 열어요.
+// [타임라인 따라가기]로 닫고, [전체 리포트 보기]로 ⑤ 리포트 화면에 가요.
 export default function SummaryDialog({ open, plan, profile, demo, onClose, onOpenReport }) {
   const ref = useRef(null);
   const mainRef = useRef(null);
