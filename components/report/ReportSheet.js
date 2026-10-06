@@ -108,6 +108,17 @@ function ScoreCard({ score }) {
           </li>
         ))}
       </ul>
+      {score.penalties?.length > 0 && (
+        // 네 항목 합계에서 빼는 감점: 전체 상황이 나쁘면 점수가 높게 나오지 않게 해요
+        <ul className="rs-score__penalties" aria-label="감점">
+          {score.penalties.map(p => (
+            <li key={p.id}>
+              <span>{p.label}</span>
+              <b>−{p.points}점</b>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
