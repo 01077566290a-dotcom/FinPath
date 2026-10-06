@@ -74,7 +74,7 @@ export default function FinancialMap() {
   }
 
   // ⑤ 결과: 지도에 처음 들어오면 한 화면짜리 '결과 요약'이 바로 떠요 (세 숫자 + 점수, 시연의 첫 장면).
-  // 닫으면 타임라인, [전체 리포트 보기]나 '맞춤 리포트 받기'로 전체 리포트 팝업을 열어요. 이전 흐름에서는 전체 리포트가 바로 떠요.
+  // 닫으면 타임라인, [전체 리포트 보기]나 '맞춤 리포트 받기'로 ⑤ 리포트 화면에 가요. 이전 흐름에서는 전체 리포트 팝업이 바로 떠요.
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const reportButtonRef = useRef(null);
@@ -89,8 +89,14 @@ export default function FinancialMap() {
     writeClosed(true);
     setSummaryOpen(false);
   }
+  // 요약의 '전체 리포트 보기'도 ⑤ 리포트 화면으로 (이전 흐름에서는 리포트 팝업)
   function summaryToReport() {
     setSummaryOpen(false);
+    if (flow !== 'classic') {
+      writeClosed(true);
+      router.push('/report');
+      return;
+    }
     setReportOpen(true);
   }
   // '맞춤 리포트 받기': ⑤ 리포트 화면으로 넘어가요 (이전 흐름에서는 리포트 팝업)
