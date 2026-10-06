@@ -258,26 +258,26 @@ test('리포트 데이터: 목적이 달라도(비상자금만) 깨지지 않는
 test('지도: 단계 카드에 내 금액이 들어가고 정책이 붙는다', () => {
   const roadmap = buildPlanRoadmap(haeun, filterPolicies(HAEUN, policyData));
   const ids = roadmap.steps.map(s => s.id);
-  for (const id of [
-    'cashflow',
-    'budget',
-    'saving_method',
-    'emergency',
-    'housing_budget',
-    'housing_deposit',
-    'move_in_cost',
-  ])
+  for (const id of ['cashflow', 'budget', 'saving_method', 'emergency', 'housing_budget', 'housing_deposit'])
     assert.ok(ids.includes(id), id);
+  // 보증금과 이사·초기 비용은 한 단계(housing_deposit)에서 함께 챙겨요
+  assert.equal(ids.includes('move_in_cost'), false);
   const byId = Object.fromEntries(roadmap.steps.map(s => [s.id, s]));
   assert.match(byId.emergency.figure, /912/); // 684 + 주거비 부담으로 더 쌓는 1개월치 228
   assert.ok(byId.emergency.personal.some(line => line.includes('228만 원을 더')));
-  assert.match(byId.housing_deposit.figure, /보증금 1,000/); // 이사·초기 비용은 다음 단계(move_in_cost)에만
-  assert.equal(
-    byId.housing_deposit.personal.some(line => line.includes('200만 원')),
-    false,
+  assert.equal(byId.housing_deposit.title, '보증금·이사 비용 마련하기');
+  assert.match(byId.housing_deposit.figure, /1,200만 원/);
+  assert.match(
+    byId.housing_deposit.personal[0],
+    /^예상 금액: 보증금 1,000만 원 \+ 중개수수료 \d+만 원 \+ 이사비 \d+만 원 \+ 가전·가구·생활용품 \d+만 원 = 1,200만 원$/,
   );
-  assert.match(byId.move_in_cost.figure, /200/);
-  assert.match(byId.move_in_cost.personal[0], /^예상 금액: 중개수수료 \d+만 원 \+ 이사비/);
+  // '이렇게 해보세요'에 내 숫자와 공식 사이트 바로 가기
+  assert.ok(byId.cashflow.how.some(line => line.includes('245만 원')));
+  assert.ok(byId.contract_check.links.some(link => link.url.includes('iros.go.kr')));
+  // 현재와 권장이 같으면 같은 숫자를 두 번 쓰지 않는다
+  for (const step of roadmap.steps.filter(s => s.compare)) {
+    assert.notEqual(step.compare.now, step.compare.rec);
+  }
   // 한 단계 안에서 같은 비율을 두 번 말하지 않는다
   assert.equal(byId.budget.personal.filter(line => line.includes('53.5%')).length, 1);
   assert.ok(byId.housing_budget.personal.some(line => line.includes('60만 원 이하')));

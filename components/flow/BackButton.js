@@ -1,38 +1,18 @@
 'use client';
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// 헤더 왼쪽 '뒤로' 버튼.
-// 이 탭에서 사이트 안의 다른 화면을 거쳐 왔으면 브라우저 뒤로 가기처럼 돌아가고,
-// 링크로 바로 들어왔으면 흐름상 앞 단계(fallback)로 가요. (리포트 → 타임라인 → 입력 → 홈)
-const VIEWS_KEY = 'finpath.views';
-
-// onBack: 화면 안에서 한 칸 뒤로 갈 수 있으면 true를 돌려주는 함수 (예: 입력 화면의 이전 질문)
-export default function BackButton({ fallback = '/', label = '뒤로', onBack }) {
+// 헤더 왼쪽 '이전 단계' 버튼: 5단계(① 목표·내 돈 → ② 맞춤 질문 → ③ 정책 찾기 → ④ 타임라인 → ⑤ 리포트)에서 한 칸 뒤로 가요.
+// 버튼에는 돌아갈 단계 이름을 보여 줘요 (예: '← ④ 타임라인').
+// 질문 하나 뒤로는 입력 화면 아래의 '이전' 버튼이 맡아요.
+// onBack: 같은 화면 안에서 단계를 옮길 수 있으면 처리하고 true (입력 화면의 ①~③)
+export default function BackButton({ fallback = '/', label = '이전 단계', onBack }) {
   const router = useRouter();
-  useEffect(() => {
-    try {
-      const n = Number(window.sessionStorage.getItem(VIEWS_KEY) || 0);
-      window.sessionStorage.setItem(VIEWS_KEY, String(n + 1));
-    } catch {
-      // 저장이 막혀 있으면 늘 fallback으로 가요.
-    }
-  }, []);
-
   const goBack = () => {
     if (onBack && onBack()) return;
-    let views = 0;
-    try {
-      views = Number(window.sessionStorage.getItem(VIEWS_KEY) || 0);
-    } catch {
-      views = 0;
-    }
-    if (views > 1 && window.history.length > 1) router.back();
-    else router.push(fallback);
+    router.push(fallback);
   };
-
   return (
-    <button type="button" className="back-btn" onClick={goBack} aria-label={`${label} (이전 화면으로)`}>
+    <button type="button" className="back-btn" onClick={goBack} aria-label={`이전 단계: ${label}`}>
       <svg
         width="20"
         height="20"

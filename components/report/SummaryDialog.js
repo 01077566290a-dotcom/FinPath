@@ -1,9 +1,8 @@
 'use client';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { viewFromPlan } from '../../lib/report/fromPlan.js';
 import { scoreFromPlan } from '../../lib/report/score.js';
 import { money } from '../../lib/report/format.js';
-import Link from 'next/link';
 import ShareMenu from './ShareMenu.js';
 import Trio from './Trio.js';
 
@@ -13,6 +12,32 @@ import Trio from './Trio.js';
 export default function SummaryDialog({ open, plan, profile, demo, onClose, onOpenReport }) {
   const ref = useRef(null);
   const mainRef = useRef(null);
+  const bodyRef = useRef(null);
+  const [saving, setSaving] = useState(false);
+
+  // 요약 화면을 그림(PNG)으로 저장해요. 오른쪽 위 버튼과 아래 버튼은 빼고 담아요.
+  const saveImage = async () => {
+    if (!bodyRef.current || saving) return;
+    setSaving(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      const url = await toPng(bodyRef.current, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        filter: node => !(node.classList?.contains('sum__tools') || node.classList?.contains('sum__actions')),
+      });
+      const a = document.createElement('a');
+      a.href = url;
+      const d = new Date();
+      const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      a.download = `FinPath-결과-${day}.png`;
+      a.click();
+    } catch {
+      window.alert('이미지로 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.');
+    } finally {
+      setSaving(false);
+    }
+  };
   const view = useMemo(() => viewFromPlan(plan, { demo }), [plan, demo]);
   const score = useMemo(() => scoreFromPlan(plan), [plan]);
   const { core, verdict } = view;
@@ -42,11 +67,18 @@ export default function SummaryDialog({ open, plan, profile, demo, onClose, onOp
       }}
     >
       {open && (
-        <div className="sum__body">
-          {/* 오른쪽 위 작은 버튼: 공유 · 저장(PDF) */}
+        <div className="sum__body" ref={bodyRef}>
+          {/* 오른쪽 위 작은 버튼: 공유 · 이미지로 저장 */}
           <div className="sum__tools">
             <ShareMenu small profile={profile} demo={demo} summary={`FinPath 맞춤 리포트: ${verdict.headline}`} />
-            <Link href="/report?print=1" className="icon-btn" aria-label="PDF로 저장" title="PDF로 저장">
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="이미지로 저장"
+              title="이미지로 저장"
+              onClick={saveImage}
+              disabled={saving}
+            >
               <svg
                 width="16"
                 height="16"
@@ -62,7 +94,7 @@ export default function SummaryDialog({ open, plan, profile, demo, onClose, onOp
                 <path d="M7 10l5 5 5-5" />
                 <path d="M5 20h14" />
               </svg>
-            </Link>
+            </button>
           </div>
           <p className="sum__eyebrow">
             {demo ? '시연 인물(정하은)의 결과' : '내 결과'} · {view.purposeLabel}

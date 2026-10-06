@@ -103,7 +103,7 @@ function ScoreCard({ score }) {
               {item.compare.label} {item.compare.value}
               {item.unit}
               {item.limit && ` · ${item.limit.label} ${item.limit.value}${item.unit}`}
-              <span className="rs-score__pts">{item.points}/25</span>
+              <span>{item.points} / 25점</span>
             </p>
           </li>
         ))}

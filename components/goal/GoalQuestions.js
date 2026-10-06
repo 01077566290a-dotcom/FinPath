@@ -27,7 +27,7 @@ import {
 import { loadAnswers, saveAnswers, clearAll } from '../../lib/goal/store.js';
 import { filterPolicies } from '../../lib/goal/policies.js';
 import { policyData } from '../../lib/goal/policyData.js';
-import { SiteHeader, PrivacyNote, ArrowIcon, FlowSteps } from '../flow/Chrome.js';
+import { SiteHeader, PrivacyNote, ArrowIcon, FlowSteps, FLOW } from '../flow/Chrome.js';
 import { useFlowMode } from '../../lib/flowMode.js';
 
 export default function GoalQuestions() {
@@ -51,8 +51,14 @@ export default function GoalQuestions() {
     if (result.error) return result.error;
     commit(result.answers);
     if (editingId) {
-      setEditingId(null);
-      setEditFrom(null);
+      // '이전'·'이전 단계'로 돌아온 경우: '다음'은 순서대로 다음 질문으로 가요 (이미 답한 질문이면 그 답을 보여 줘요)
+      const list = visibleQuestions(result.answers);
+      const after = list[list.findIndex(q => q.id === question.id) + 1];
+      if (editFrom === 'back' && after && result.answers[after.id] !== undefined) setEditingId(after.id);
+      else {
+        setEditingId(null);
+        setEditFrom(null);
+      }
     }
     return null;
   };
@@ -62,7 +68,7 @@ export default function GoalQuestions() {
     const i = list.findIndex(q => q.id === id);
     return i > 0 ? list[i - 1].id : null;
   };
-  // 한 칸 뒤로. 처리했으면 true (헤더 '뒤로'도 이걸 먼저 써요)
+  // '이전' 버튼: 질문 하나 뒤로
   const onBack = () => {
     if (editingId && editFrom === 'summary') {
       setEditingId(null);
@@ -75,6 +81,18 @@ export default function GoalQuestions() {
     setEditFrom('back');
     return true;
   };
+  // 헤더 '이전 단계': 5단계에서 한 칸 뒤로 (그 단계의 첫 질문으로). 확인 화면은 ③ 다음으로 봐요.
+  const stageNow = question ? stageOf(question) : 4;
+  const stageTarget = stageNow - 1;
+  const stageBack = () => {
+    if (stageTarget < 1) return false; // ①에서는 처음 화면으로
+    const first = visibleQuestions(answers).find(q => stageOf(q) === stageTarget);
+    if (!first) return false;
+    setEditingId(first.id);
+    setEditFrom('back');
+    return true;
+  };
+  const stageBackLabel = stageTarget >= 1 ? `${'①②③'[stageTarget - 1]} ${FLOW[stageTarget - 1].label}` : '처음 화면';
   const editFromSummary = id => {
     setEditingId(id);
     setEditFrom('summary');
@@ -93,7 +111,8 @@ export default function GoalQuestions() {
 
   return (
     <Page
-      onBack={onBack} // 확인 화면에서도 헤더 '뒤로'는 마지막 질문으로 한 칸
+      onBack={stageBack}
+      backLabel={stageBackLabel}
       persistent={persistent}
       step={question ? stageOf(question) : 3}
       fill={question && !editingId ? stageFill(answers, stageOf(question)) : null}
@@ -124,10 +143,10 @@ function stageFill(answers, stage) {
   return { ratio: inStage.length ? done / inStage.length : 0, done, total: inStage.length };
 }
 
-function Page({ persistent, step = 1, fill = null, classic = false, onBack = null, children }) {
+function Page({ persistent, step = 1, fill = null, classic = false, onBack = null, backLabel, children }) {
   return (
     <>
-      <SiteHeader back="/" onBack={onBack}>
+      <SiteHeader back="/" backLabel={backLabel} onBack={onBack}>
         <span className="site-header__tagline">내 돈 상황 입력</span>
       </SiteHeader>
       {!classic && <FlowSteps current={step} fill={fill} />}

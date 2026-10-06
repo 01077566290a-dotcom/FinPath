@@ -112,7 +112,7 @@ export default function FinancialMap() {
 
   return (
     <>
-      <SiteHeader back="/goal">
+      <SiteHeader back="/goal" backLabel="③ 정책 찾기">
         <div className="site-header__actions">
           <Link href="/goal" className="site-header__link">
             답변 고치기
