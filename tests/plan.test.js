@@ -274,6 +274,10 @@ test('지도: 단계 카드에 내 금액이 들어가고 정책이 붙는다', 
   // '이렇게 해보세요'에 내 숫자와 공식 사이트 바로 가기
   assert.ok(byId.cashflow.how.some(line => line.includes('245만 원')));
   assert.ok(byId.contract_check.links.some(link => link.url.includes('iros.go.kr')));
+  // 현재와 권장이 같으면 같은 숫자를 두 번 쓰지 않는다
+  for (const step of roadmap.steps.filter(s => s.compare)) {
+    assert.notEqual(step.compare.now, step.compare.rec);
+  }
   // 한 단계 안에서 같은 비율을 두 번 말하지 않는다
   assert.equal(byId.budget.personal.filter(line => line.includes('53.5%')).length, 1);
   assert.ok(byId.housing_budget.personal.some(line => line.includes('60만 원 이하')));

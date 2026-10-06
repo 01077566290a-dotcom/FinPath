@@ -2445,6 +2445,13 @@ a.flow-steps__link:hover > span:last-child {
   background: #fff6d6;
   box-shadow: inset 0 0 0 1px #f2d16b;
 }
+/* 현재와 권장이 같을 때: '권장 수준이에요'는 두 줄까지 감싸요 */
+.track__compare .track__compare-rec.is-same {
+  white-space: normal;
+  word-break: keep-all;
+  font-size: 12px;
+  line-height: 1.3;
+}
 .track__compare > span[aria-hidden] {
   color: var(--ds-ink-3);
 }

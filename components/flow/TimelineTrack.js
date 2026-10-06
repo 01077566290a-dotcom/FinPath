@@ -119,7 +119,7 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
                     →
                   </span>
                   <span className="spot__compare-rec">
-                    <small>{step.compare.recLabel ?? '권장'}</small>
+                    {!step.compare.same && <small>{step.compare.recLabel ?? '권장'}</small>}
                     <b>{step.compare.rec}</b>
                   </span>
                 </div>
@@ -429,8 +429,8 @@ export default function TimelineTrack({ roadmap, done, onToggleDone, onOpenRepor
                           {short(step.compare.now)}
                         </span>
                         <span aria-hidden="true">→</span>
-                        <span className="track__compare-rec">
-                          <small>{step.compare.recLabel}</small>
+                        <span className={`track__compare-rec${step.compare.same ? ' is-same' : ''}`}>
+                          {!step.compare.same && <small>{step.compare.recLabel}</small>}
                           {short(step.compare.rec)}
                         </span>
                       </span>
