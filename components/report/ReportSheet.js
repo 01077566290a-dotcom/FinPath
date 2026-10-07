@@ -73,7 +73,10 @@ function ScoreCard({ score }) {
         {score.items.map(item => (
           <li key={item.id} className={`rs-score__item rs-score__item--${item.level}`}>
             <div className="rs-score__row">
-              <span className="rs-score__label">{item.label}</span>
+              <span className="rs-score__label">
+                {item.label}
+                {item.detail && <small className="rs-score__detail">{item.detail}</small>}
+              </span>
               <span className="rs-score__value">
                 {item.value}
                 <small>{item.unit}</small>

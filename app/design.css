@@ -2726,3 +2726,12 @@ a.flow-steps__link:hover > span:last-child {
   left: 0;
   transform: none;
 }
+
+/* 점수 항목 아래 작은 설명 (예: 지금 29.8% · 독립 후 4.9%) */
+.rs-score__detail {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ds-ink-3);
+}
