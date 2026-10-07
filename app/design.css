@@ -2369,6 +2369,8 @@ a.flow-steps__link:hover > span:last-child {
 /* ── 입력: 왼쪽 '이전' 버튼, 만 나이 칸 ── */
 .goal-prev {
   gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap; /* 버튼이 많아도 '이전'이 세로로 쪼개지지 않게 */
 }
 .goal-field__prefix {
   margin-right: 2px;
@@ -2712,4 +2714,15 @@ a.flow-steps__link:hover > span:last-child {
 .policy-status--not-open {
   background: #fff6d6;
   color: #8a6100;
+}
+
+/* 리포트 막대의 '생각한 목표' 이름표가 끝에 있으면 카드 밖으로 나가지 않게 안쪽으로 붙여요 */
+.rs-progress__mark--goal[data-edge='end'] em {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.rs-progress__mark--goal[data-edge='start'] em {
+  left: 0;
+  transform: none;
 }

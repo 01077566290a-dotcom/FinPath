@@ -58,7 +58,9 @@ export default function ReportView() {
 
   const printButton = (
     <button type="button" className="btn btn--outline btn--sm" onClick={printReport}>
-      인쇄<span className="hide-sm"> · PDF</span>
+      <span>
+        인쇄<span className="hide-sm"> · PDF</span>
+      </span>
     </button>
   );
 

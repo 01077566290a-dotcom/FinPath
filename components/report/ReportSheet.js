@@ -282,7 +282,11 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
                 style={{ left: `${pct(core.needed, scale)}%` }}
               />
               {goalAt !== null && (
-                <span className="rs-progress__mark rs-progress__mark--goal" style={{ left: `${goalAt}%` }}>
+                <span
+                  className="rs-progress__mark rs-progress__mark--goal"
+                  style={{ left: `${goalAt}%` }}
+                  data-edge={goalAt > 85 ? 'end' : goalAt < 15 ? 'start' : undefined}
+                >
                   <em>생각한 목표</em>
                 </span>
               )}
