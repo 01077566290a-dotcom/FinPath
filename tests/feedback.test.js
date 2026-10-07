@@ -73,7 +73,7 @@ test('휴대폰 키패드의 쉼표 소수점도 소수로 읽고, 천 단위 �
   assert.equal(parseAmount('1,000,000'), 1000000);
 });
 
-test('목돈 목표는 타임라인 단계로도 보이고, 금액은 소수 첫째 자리까지만 보인다', async () => {
+test('목돈 목표는 타임라인 단계로도 보이고, 결과 금액은 정수로 보인다', async () => {
   const { buildPlanRoadmap } = await import('../lib/plan/steps.js');
   const { money } = await import('../lib/report/format.js');
   const profile = buildDemoProfile();
@@ -81,7 +81,7 @@ test('목돈 목표는 타임라인 단계로도 보이고, 금액은 소수 첫
   const step = buildPlanRoadmap(buildPlan(profile)).steps.find(s => s.id === 'personal');
   assert.ok(step, '목돈 목표 단계가 있어야 해요');
   assert.match(step.figure, /^36개월 안에 /);
-  assert.equal(money(233.33333), '233.3만 원');
+  assert.equal(money(233.33333), '233만 원'); // 결과 화면은 만 원 단위 정수
 });
 
 test('정책 카드에는 원래 조건 설명을 두고, 신청 가능 여부는 짧은 표시로 붙인다', async () => {
