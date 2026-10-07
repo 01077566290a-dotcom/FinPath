@@ -96,7 +96,7 @@ test('줄일 지출을 답하지 않으면 리포트에서 고를 예시 항목�
 
 const INVEST_ONLY = [
   ['purposes', ['투자']],
-  ['goal', { amount: 1000, months: 36 }],
+  ['goal', 'unknown'],
   ['income', 280],
   ['saving_now', 90],
   ['saved', 500],

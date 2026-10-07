@@ -201,7 +201,7 @@ test('모른다고 답한 값은 기준값으로 채우고 표시한다', () => 
     ['loan_plan', '아니요'],
   ]);
   const plan = buildPlan(unknown);
-  assert.deepEqual(plan.usedDefaults, ['deposit', 'rent', 'maintenance']);
+  assert.deepEqual(plan.usedDefaults, ['variable_after_delta', 'deposit', 'rent', 'maintenance']);
   assert.equal(plan.cashflow.housingCost, 68);
   assert.equal(plan.core.goal, null);
 });

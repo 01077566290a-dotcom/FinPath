@@ -51,9 +51,11 @@ test('입주까지 부족하면 보증금 단계가 리포트와 같은 달(지�
   const deposit = stepsOf(plan).housing_deposit;
   assert.ok(plan.core.gap > 0);
   assert.ok(
-    deposit.personal.some(line => line.includes(`지금처럼 매달 60만 원씩 모으면 ${plan.core.doneLabel}에 마련해요`)),
+    deposit.personal.some(line =>
+      line.includes(`지금처럼 매달 60만 원씩 모으면 ${plan.scenarios.A.doneLabels.housing}에 마련해요`),
+    ),
   );
-  assert.equal(deposit.now, `지금 속도면 ${plan.core.doneLabel}`);
+  assert.equal(deposit.now, `지금 속도면 ${plan.scenarios.A.doneLabels.housing}`);
 });
 
 test('투자 희망액이 남는 돈보다 크면 타임라인도 넣을 수 있는 만큼만 말한다', () => {

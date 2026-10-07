@@ -215,6 +215,17 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
           {shared ? '공유받은 리포트' : demo ? '시연 데이터' : '내 답변 기준'}
         </span>
       </header>
+      {plan.usedDefaults.includes('loan_principal_monthly') && (
+        <p role="status" className="rs-demo-note">
+          대출 원금 상환액이 미정이라 월 지출에는 추정 이자만 반영했어요. 원금 상환액을 입력해야 상환 부담을 함께 계산할
+          수 있어요.
+        </p>
+      )}
+      {plan.usedDefaults.includes('variable_after_delta') && (
+        <p className="rs-demo-note">
+          지역별 추가 생활비는 미입력으로 0원을 가정했어요. 이사 후 식비 등 증가분을 입력하면 결과에 반영돼요.
+        </p>
+      )}
       {demo && !shared && (
         <p className="rs-demo-note">
           지금은 시연 인물(정하은) 기준이에요.{' '}
@@ -271,7 +282,11 @@ export function ReportSheet({ plan, demo = false, shared = false }) {
                 style={{ left: `${pct(core.needed, scale)}%` }}
               />
               {goalAt !== null && (
-                <span className="rs-progress__mark rs-progress__mark--goal" style={{ left: `${goalAt}%` }}>
+                <span
+                  className="rs-progress__mark rs-progress__mark--goal"
+                  style={{ left: `${goalAt}%` }}
+                  data-edge={goalAt > 85 ? 'end' : goalAt < 15 ? 'start' : undefined}
+                >
                   <em>생각한 목표</em>
                 </span>
               )}
