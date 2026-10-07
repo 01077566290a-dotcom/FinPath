@@ -101,3 +101,83 @@ test('정책 카드에는 원래 조건 설명을 두고, 신청 가능 여부�
   assert.equal(p.condition_note, '무주택 청년');
   assert.equal(p.eligibility.label, '추가 확인 필요');
 });
+
+test('목표 진단은 독립 후 줄어든 저축까지 반영해 실제 완료 시점과 어긋나지 않는다', async () => {
+  // 제보 사례: 월급 300·저축 100·이사 후 월세 50·목표 2,000만 원/24개월 → 예전엔 '기한 전에 다 모아요'
+  const { answer, buildProfile } = await import('../lib/goal/engine.js');
+  const now = new Date(2026, 9, 7);
+  let a = {};
+  for (const [id, v] of [
+    ['purposes', ['주거']],
+    ['goal', { amount: 2000, months: 24 }],
+    ['income', 300],
+    ['saving_now', 100],
+    ['saved', 0],
+    ['has_debt', 'no'],
+    ['housing_type', '월세'],
+    ['deposit', 500],
+    ['rent', { rent: 50, maintenance: 0 }],
+    ['move_in', '2027-04'],
+    ['commute_now', 10],
+    ['commute_after', 10],
+    ['region', { sido: '서울', sigungu: '' }],
+    ['age', 27],
+  ])
+    a = answer(a, id, v, { now }).answers;
+  const plan = buildPlan(buildProfile(a, { now }));
+  assert.ok(plan.core.monthsNeeded > plan.core.deadline);
+  assert.ok(plan.core.collectable < plan.core.needed);
+});
+
+test('월 원금을 다 갚은 뒤에는 원금·이자만큼 다시 모인다', async () => {
+  const { monthlyFlow } = await import('../lib/plan/simulate.js');
+  const flows = { saveBefore: 100, saveAfter: 20, loan: { months: 3, relief: 101 } };
+  assert.equal(monthlyFlow(flows, 5, 5), 100); // 독립 전
+  assert.equal(monthlyFlow(flows, 8, 5), 20); // 독립 3개월째까지 상환 중
+  assert.equal(monthlyFlow(flows, 9, 5), 121); // 다 갚은 뒤
+  assert.equal(monthlyFlow({ saveBefore: 100, saveAfter: -30 }, 9, 5), 0); // 적자는 0으로 (모아둔 돈을 깎지 않음)
+});
+
+test('저축을 고쳐 지금 월세 답이 맞지 않게 되면 그 답을 지워 다시 묻는다', async () => {
+  const { answer } = await import('../lib/goal/engine.js');
+  const now = new Date(2026, 9, 7);
+  let a = {};
+  for (const [id, v] of [
+    ['purposes', ['주거']],
+    ['income', 300],
+    ['saving_now', 100],
+    ['current_housing_cost', 180],
+  ])
+    a = answer(a, id, v, { now }).answers;
+  assert.equal(a.current_housing_cost, 180);
+  const r = answer(a, 'saving_now', 290, { now });
+  assert.equal(r.error, null);
+  assert.equal(r.answers.current_housing_cost, undefined);
+});
+
+test('소수 교통비(12.5만 원)도 프로필과 독립 후 지출에 반영된다', async () => {
+  const { answer, buildProfile } = await import('../lib/goal/engine.js');
+  const now = new Date(2026, 9, 7);
+  let a = {};
+  for (const [id, v] of [
+    ['purposes', ['주거']],
+    ['goal', { amount: 1000, months: 12 }],
+    ['income', 300],
+    ['saving_now', 100],
+    ['saved', 0],
+    ['has_debt', 'no'],
+    ['housing_type', '월세'],
+    ['deposit', 500],
+    ['rent', { rent: 50, maintenance: 0 }],
+    ['move_in', '2027-04'],
+    ['commute_now', 12.5],
+    ['commute_after', 5],
+    ['region', { sido: '서울', sigungu: '' }],
+    ['age', 27],
+  ])
+    a = answer(a, id, v, { now }).answers;
+  const profile = buildProfile(a, { now });
+  assert.deepEqual(profile.money.fixed_items, { 교통비: 12.5 });
+  const plan = buildPlan(profile);
+  assert.equal(plan.cashflow.after.spend, plan.cashflow.now.spend - 7.5 + 50);
+});
