@@ -43,10 +43,10 @@ test('점수 규칙: 항목별 25점, 기준값에 맞춰 움직인다', () => {
   assert.equal(debtScore(20), 0);
 });
 
-test('정하은: 항목 합계 64점에서 기한 부족 감점 → 58점, 아쉬운 점은 독립 후 저축률', () => {
+test('정하은(시연 데이터): 항목 합계 64점에서 기한 부족 감점 → 61점, 아쉬운 점은 독립 후 저축률', () => {
   const score = scoreFromPlan(demoPlan());
-  assert.equal(score.total, 58);
-  assert.equal(score.grade, '조금만 더 해봐요');
+  assert.equal(score.total, 61);
+  assert.equal(score.grade, '잘하고 있어요');
   assert.deepEqual(
     score.penalties.map(p => p.id),
     ['short'],

@@ -76,7 +76,7 @@ test('투자 희망액이 남는 돈보다 크면 타임라인도 넣을 수 있
   assert.ok(invest.personal.some(line => line.includes('원하는 200만 원 중 남는 돈으로는 매달 80만 원까지')));
 });
 
-test('독립 후 적자는 "모자라요"로 말하고, 감점 10점과 칭찬 제외가 붙는다', () => {
+test('독립 후 적자는 "모자라요"로 말하고, 감점 5점과 칭찬 제외가 붙는다', () => {
   const plan = planOf(
     base(['주거'], [['income', 200], ['saving_now', 30], ['saved', 400], ...rentHouse('2027-04', 1000, 85)]),
   );
@@ -84,7 +84,7 @@ test('독립 후 적자는 "모자라요"로 말하고, 감점 10점과 칭찬 �
   assert.match(s.cashflow.personal[1], /매달 \d+만 원이 모자라요\.$/);
   assert.ok(!s.cashflow.personal.join(' ').includes('−'));
   const score = scoreFromPlan(plan);
-  assert.ok(score.penalties.some(p => p.id === 'deficit' && p.points === 10));
+  assert.ok(score.penalties.some(p => p.id === 'deficit' && p.points === 5));
   assert.ok(!/주거비가 월급의 .*무리 없는/.test(score.comment));
 });
 
@@ -155,7 +155,9 @@ test('비현실적인 해결책은 숨기고, 목표 조정은 실제 부족액�
   const adjust = plan.fixes.find(f => f.kind === 'adjust');
   assert.ok(adjust && !adjust.headline.includes('500만 원'));
   const score = scoreFromPlan(plan);
-  assert.ok(score.total < 60, `큰 부족인데 ${score.total}점`);
+  // 큰 부족이면 감점이 붙고 최고 등급은 나오지 않아요
+  assert.ok(score.penalties.some(p => p.id === 'short' && p.points >= 10));
+  assert.notEqual(score.grade, '아주 좋아요');
 });
 
 test('월세 권장 상한이 너무 낮으면 금액 대신 함께 줄이자고 안내한다', () => {
