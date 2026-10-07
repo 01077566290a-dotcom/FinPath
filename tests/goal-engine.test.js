@@ -159,7 +159,7 @@ test('적응형: 월세·보증금이 작으면 대출을 묻지 않고, 전세�
 test('적응형: 빠른 선택이 앞의 답에 따라 바뀐다', () => {
   const quick = (id, answers) => QUESTION_BY_ID[id].quick(answers);
   assert.deepEqual(quick('goal', { purposes: ['비상자금'] }).amount, [300, 500, 1000]);
-  assert.deepEqual(quick('goal', { purposes: ['주거'] }).amount, [1000, 3000, 5000, 10000]);
+  assert.deepEqual(quick('goal', { purposes: ['주거'] }).amount, [1000, 1500, 3000, 5000]);
   assert.ok(quick('deposit', { housing_type: '전세' })[0] >= 10000);
   assert.ok(quick('deposit', { housing_type: '월세' })[0] < 1000);
 });

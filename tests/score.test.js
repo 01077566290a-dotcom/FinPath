@@ -43,10 +43,10 @@ test('점수 규칙: 항목별 25점, 기준값에 맞춰 움직인다', () => {
   assert.equal(debtScore(20), 0);
 });
 
-test('정하은: 항목 합계 64점에서 기한 부족 감점 → 58점, 아쉬운 점은 독립 후 저축률', () => {
+test('정하은(시연 데이터): 저축률은 지금·독립 후 평균, 기한 부족 감점 → 69점, 아쉬운 점은 평균 저축률', () => {
   const score = scoreFromPlan(demoPlan());
-  assert.equal(score.total, 58);
-  assert.equal(score.grade, '조금만 더 해봐요');
+  assert.equal(score.total, 69);
+  assert.equal(score.grade, '잘하고 있어요');
   assert.deepEqual(
     score.penalties.map(p => p.id),
     ['short'],
@@ -55,7 +55,8 @@ test('정하은: 항목 합계 64점에서 기한 부족 감점 → 58점, 아�
     score.items.map(i => i.id),
     ['saving', 'emergency', 'goal', 'housing'],
   );
-  assert.match(score.comment, /독립 후 저축률이 6\.9%로 청년 가구 평균\(24\.7%\)보다 낮아요/);
+  assert.match(score.comment, /지금과 독립 후 평균 저축률이 18\.4%로 청년 가구 평균\(24\.7%\)보다 낮아요/);
+  assert.equal(score.items[0].detail, '지금 29.8% · 독립 후 6.9%');
   assert.match(score.action, /입주를 2028년 3월로/);
 });
 
