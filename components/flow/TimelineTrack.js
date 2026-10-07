@@ -156,6 +156,11 @@ function Spotlight({ steps, index, dir, open, done, onClose, onMove, onToggleDon
                     <li key={policy.id}>
                       <a href={policy.url} target="_blank" rel="noreferrer">
                         <strong>{policy.name}</strong>
+                        {policy.eligibility && (
+                          <em className={`policy-status policy-status--${policy.eligibility.status}`}>
+                            {policy.eligibility.label}
+                          </em>
+                        )}
                         <span>{policy.summary}</span>
                       </a>
                     </li>

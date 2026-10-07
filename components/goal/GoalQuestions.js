@@ -308,7 +308,7 @@ export function readAmount(value, unit) {
 
 // current: 지금 칸에 들어 있는 값. 같은 칩은 눌린 모양으로 보여 줘요.
 function QuickPicks({ values, unit, onPick, label, current }) {
-  const now = String(current ?? '').replace(/[^0-9]/g, '');
+  const now = Number.isFinite(parseAmount(current)) ? String(parseAmount(current)) : '';
   if (!values?.length) return null;
   return (
     <div className="goal-quick" role="group" aria-label={label ? `${label} 빠른 선택` : '빠른 선택'}>
@@ -353,7 +353,7 @@ function NumberInput({ id, label, unit, value, onChange, prefix, short }) {
         <input
           id={id}
           type="text"
-          inputMode="numeric"
+          inputMode="decimal"
           autoComplete="off"
           value={value}
           onChange={e => onChange(e.target.value)}
@@ -658,6 +658,9 @@ function ClassicSummary({ answers, onEdit, onReset }) {
           {policies.map(p => (
             <li key={p.id} className="card goal-policy">
               <strong>{p.name}</strong>
+              {p.eligibility && (
+                <em className={`policy-status policy-status--${p.eligibility.status}`}>{p.eligibility.label}</em>
+              )}
               <p>{p.summary}</p>
               <p className="goal-policy__note">{p.condition_note}</p>
               <a href={p.url} target="_blank" rel="noreferrer">

@@ -8,6 +8,7 @@ import { shareUrl } from '../../lib/report/share.js';
 export default function ShareMenu({ profile, demo, summary, small = false, className }) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState('');
+  const [includeAmounts, setIncludeAmounts] = useState(false);
   const [canNative, setCanNative] = useState(false);
   const ref = useRef(null);
   useEffect(() => setCanNative(typeof navigator !== 'undefined' && typeof navigator.share === 'function'), []);
@@ -19,7 +20,7 @@ export default function ShareMenu({ profile, demo, summary, small = false, class
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
-  const url = () => shareUrl(profile, { demo });
+  const url = () => shareUrl(profile, { demo, includeAmounts: includeAmounts || demo });
 
   const copy = async () => {
     const link = url();
@@ -34,7 +35,11 @@ export default function ShareMenu({ profile, demo, summary, small = false, class
   };
   const nativeShare = async () => {
     try {
-      await navigator.share({ title: 'FinPath 맞춤 리포트', text: summary, url: url() });
+      await navigator.share({
+        title: 'FinPath 맞춤 리포트',
+        text: includeAmounts || demo ? summary : 'FinPath 목표 요약 (금액 비공개)',
+        url: url(),
+      });
       setStatus('공유했어요.');
     } catch {
       // 사용자가 취소한 경우
@@ -51,6 +56,7 @@ export default function ShareMenu({ profile, demo, summary, small = false, class
         title={small ? '공유' : undefined}
         onClick={() => {
           setStatus('');
+          setIncludeAmounts(false);
           setOpen(true);
         }}
       >
@@ -93,8 +99,21 @@ export default function ShareMenu({ profile, demo, summary, small = false, class
             <p className="share__note">
               {demo
                 ? '시연 인물(정하은)의 리포트 링크예요.'
-                : '링크에 내가 입력한 숫자(월급, 모아둔 돈 등)가 담겨요. 받은 사람은 같은 리포트를 보기만 할 수 있어요.'}
+                : '기본 공유는 목표 종류만 담아요. 월급·자산·빚·지역과 계산 결과는 링크에서 제외해요.'}
             </p>
+            {!demo && (
+              <label className="share__private">
+                <input
+                  type="checkbox"
+                  checked={includeAmounts}
+                  onChange={e => {
+                    setIncludeAmounts(e.target.checked);
+                    setStatus('');
+                  }}
+                />
+                <span>금액까지 공개하기 (월급·모아둔 돈·빚·지역이 링크에 담겨요)</span>
+              </label>
+            )}
             <div className="share__actions">
               <button type="button" className="btn btn--primary btn--sm" onClick={copy}>
                 링크 복사

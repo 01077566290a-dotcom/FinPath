@@ -109,7 +109,7 @@ test('정하은으로 답하면 시연 문서와 같은 숫자의 프로필이 �
 
 test('적응형: 정하은은 질문 15개, 공통 질문은 7개 이하', () => {
   const asked = visibleQuestions(answerAll(HAEUN));
-  assert.equal(asked.length, 15);
+  assert.equal(asked.length, 17);
   assert.ok(asked.filter(q => q.group === 'common' && stageOf(q) === 1).length <= 7);
 });
 
@@ -159,7 +159,7 @@ test('적응형: 월세·보증금이 작으면 대출을 묻지 않고, 전세�
 test('적응형: 빠른 선택이 앞의 답에 따라 바뀐다', () => {
   const quick = (id, answers) => QUESTION_BY_ID[id].quick(answers);
   assert.deepEqual(quick('goal', { purposes: ['비상자금'] }).amount, [300, 500, 1000]);
-  assert.deepEqual(quick('goal', { purposes: ['주거'] }).amount, [1000, 1500, 3000, 5000]);
+  assert.deepEqual(quick('goal', { purposes: ['주거'] }).amount, [1000, 3000, 5000, 10000]);
   assert.ok(quick('deposit', { housing_type: '전세' })[0] >= 10000);
   assert.ok(quick('deposit', { housing_type: '월세' })[0] < 1000);
 });

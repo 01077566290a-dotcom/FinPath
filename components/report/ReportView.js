@@ -50,7 +50,7 @@ export default function ReportView() {
 
   const sharedPlan = useMemo(
     () =>
-      shared && shared !== 'invalid'
+      shared && shared !== 'invalid' && !shared.masked
         ? buildPlan(shared.profile, shared.demo ? { assumptions: DEMO_ASSUMPTIONS } : undefined)
         : null,
     [shared],
@@ -63,6 +63,24 @@ export default function ReportView() {
   );
 
   // 공유받은 리포트 (보기 전용)
+  if (shared?.masked)
+    return (
+      <>
+        <SiteHeader back="/" backLabel="처음 화면" />
+        <main className="rs-page">
+          <section className="rs-card rs-masked" aria-labelledby="rs-masked-title">
+            <p className="rs-masked__eyebrow">공유받은 FinPath 목표</p>
+            <h1 id="rs-masked-title">{shared.purposes.join(' · ')}을 준비하고 있어요</h1>
+            <p className="rs-masked__note">
+              공유한 사람이 월급·모아둔 돈·빚과 계산 결과를 비공개로 설정해서, 목표 종류만 보여요.
+            </p>
+            <Link href="/goal" className="btn btn--primary btn--md">
+              내 숫자로 해 보기
+            </Link>
+          </section>
+        </main>
+      </>
+    );
   if (sharedPlan)
     return (
       <>

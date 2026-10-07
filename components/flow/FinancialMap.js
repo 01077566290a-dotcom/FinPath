@@ -439,6 +439,11 @@ function MapBoard({ roadmap, done, onToggleDone }) {
                 {selected.policies.map(policy => (
                   <li key={policy.id}>
                     <strong>{policy.name}</strong>
+                    {policy.eligibility && (
+                      <em className={`policy-status policy-status--${policy.eligibility.status}`}>
+                        {policy.eligibility.label}
+                      </em>
+                    )}
                     <span>{policy.summary}</span>
                     <span className="map-pop__policy-note">{policy.condition_note}</span>
                     <a href={policy.url} target="_blank" rel="noreferrer">

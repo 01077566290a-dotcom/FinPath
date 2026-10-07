@@ -8,6 +8,8 @@ const VERDICT = {
   no_room: '먼저 지출을 줄여야 해요',
 };
 const DEFAULT_LABEL = {
+  variable_after_delta: '지역 생활비 증가(0원 가정)',
+  loan_principal_monthly: '월 원금 상환(미정)',
   deposit: '보증금',
   rent: '월세',
   maintenance: '관리비',
